@@ -15,10 +15,16 @@ datasource db {
     relationMode = "prisma"
 }
 
-model Example {
+model Diary {
     id        String   @id @default(cuid())
+    title     String
+    content   String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    author    User     @relation(fields: [authorId], references: [id])
+    authorId  String
+
+    @@index([authorId])
 }
 
 // Necessary for Next auth
@@ -59,6 +65,7 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    diaries         Diary[]
 }
 
 model VerificationToken {
