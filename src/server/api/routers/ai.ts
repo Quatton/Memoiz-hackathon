@@ -18,4 +18,17 @@ export const aiRouter = createTRPCRouter({
       if (res) res.text = `${input.prompt}${res ? res.text : ""}`;
       return res;
     }),
+
+  classify: publicProcedure
+    .input(z.object({ prompt: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      console.log(input.prompt);
+      const response = await cohere.classify({
+        inputs: [input.prompt],
+        model: "d7c9708f-a8e8-4e08-aa51-ea9cebc55cab-ft",
+        examples: [],
+      });
+
+      return response.body.classifications[0];
+    }),
 });

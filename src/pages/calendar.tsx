@@ -41,6 +41,8 @@ const Home: NextPage = () => {
           </div>
         </div>
         <Link href={'/chat'} className="btn btn-primary">Daily Journal</Link>
+        <Link href={'/chat'} className="btn btn-primary">Chat</Link>
+        <Link href={'/classify'} className="btn btn-primary">Classify</Link>
       </main>
     </>
   );
