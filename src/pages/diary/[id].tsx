@@ -2,27 +2,82 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "src/utils/api";
 
-const DiaryCreatePage: NextPage = () => {
+const DiaryViewPage: NextPage = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const router = useRouter();
-  const mutation = api.diary.createDiary.useMutation({
-    onSuccess: async (_) => {
-      setLoading(false);
-      setTitle("");
-      setContent("");
-      await router.push("/diary");
+
+  const {
+    data: diaryData,
+    isLoading,
+    refetch,
+  } = api.diary.getDiaryById.useQuery(
+    {
+      id: router.query.id as string,
     },
-    onError: (e) => {
-      console.error(e);
-      setLoading(false);
-    },
+    {
+      onSuccess(data) {
+        if (data) {
+          setTitle(data.title);
+          setContent(data.content);
+        }
+      },
+    }
+  );
+
+  const mutation = api.diary.updateDiary.useMutation();
+
+  // auto-save
+  const [payload, setPayload] = useState({
+    id: "",
+    title: "",
+    content: "",
   });
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (diaryData) {
+      // check if title & content is the same as last payload
+      if (title === payload.title && content === payload.content) return;
+
+      const autoSaveInterval = setInterval(() => {
+        if (title === diaryData.title && content === diaryData.content) return;
+        void mutation
+          .mutateAsync({
+            id: router.query.id as string,
+            title,
+            content,
+          })
+          .then((_) => {
+            setUpdatedAt(new Date());
+            setPayload({
+              id: router.query.id as string,
+              title,
+              content,
+            });
+          });
+      }, 5000);
+
+      return () => {
+        clearInterval(autoSaveInterval);
+      };
+    }
+  }, [
+    title,
+    content,
+    mutation,
+    router.query.id,
+    diaryData,
+    payload.title,
+    payload.content,
+  ]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -38,22 +93,6 @@ const DiaryCreatePage: NextPage = () => {
               Diary
             </div>
           </Link>
-          <div className="navbar-end">
-            <button
-              className={`btn-primary btn
-              ${loading ? "btn-disabled" : ""}}`}
-              onClick={(_) => {
-                if (loading) return;
-                setLoading(true);
-                mutation.mutate({
-                  title,
-                  content,
-                });
-              }}
-            >
-              Save
-            </button>
-          </div>
         </div>
         <form className="w-full p-2">
           {mutation.error && (
@@ -62,6 +101,9 @@ const DiaryCreatePage: NextPage = () => {
             </div>
           )}
 
+          <div className="text-center text-gray-500">
+            {updatedAt && `Last updated at ${updatedAt.toLocaleString()}`}
+          </div>
           <div className="form-control">
             <label className="label">
               <span className="label-text">Title</span>
@@ -95,4 +137,4 @@ const DiaryCreatePage: NextPage = () => {
   );
 };
 
-export default DiaryCreatePage;
+export default DiaryViewPage;
