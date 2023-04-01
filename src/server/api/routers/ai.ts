@@ -9,13 +9,13 @@ export const aiRouter = createTRPCRouter({
   getAIres: publicProcedure
     .input(z.object({ prompt: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      console.log(input);
       const response = await cohere.generate({
         prompt: input.prompt,
         max_tokens: 50,
         temperature: 1,
       });
-      console.log(response.body.generations[0]);
-      return response.body.generations[0];
+      const res = response.body.generations[0];
+      if (res) res.text = `${input.prompt}${res ? res.text : ""}`;
+      return res;
     }),
 });

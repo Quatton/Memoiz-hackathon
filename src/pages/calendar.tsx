@@ -16,13 +16,24 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center gap-6">
-        <div className="bg-primary rounded-xl p-6 gap-3 flex flex-col shadow-md">
+        <div className="bg-primary w-full rounded-xl p-6 gap-3 flex flex-col shadow-md">
           <h1 className="text-3xl text-center text-white font-semibold">Calendar</h1>
+          <div className="gap-3 grid grid-cols-7 text-sm text-center">
+            {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((x) => {
+              return <div key={x}>{x}</div>
+            })}
+          </div>
           <div className="gap-3 grid grid-cols-7">
+            {
+              Array.from(Array(4).keys()).map((x) => {
+                return <div className="h-8 w-8" key={`empty-${x}`}>
 
+                </div>
+              })
+            }
             {
               Array.from(Array(31).keys()).map((x) => {
-                return <div className="rounded-full text-primary bg-white h-8 w-8 flex justify-center items-center" key={x}>
+                return <div className="rounded-full text-primary bg-white hover:bg-slate-200 hover:cursor-pointer transition-colors h-8 w-8 flex justify-center items-center" key={x}>
                   {x + 1}
                 </div>
               })
