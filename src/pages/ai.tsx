@@ -5,18 +5,27 @@ import { api } from "src/utils/api";
 
 const Ai = () => {
 
+
     const getAIres = api.ai.getAIres
     const [query, setQuery] = useState<string>("")
-    // const [result, setResult] = useState<any>()
-    const submit = () => {
-        // setResult(data)
-        console.log(getAIres.useQuery())
-    }
+    const [result, setResult] = useState<string>()
+    const mutation = api.ai.getAIres.useMutation({
+        onSuccess: (e) => {
+
+            setResult(e?.text)
+        },
+        onError: (e) => {
+            console.error(e);
+
+        },
+    });
+
 
     return (
-        <div>
-            <input value={query} onChange={(e) => { setQuery(e.target.value) }} ></input>
-            <button onClick={() => { submit() }}>Submit</button>
+        <div className="flex artboard mx-auto phone gap-6 flex-col min-h-screen w-full justify-center items-center">
+            <input className="input input-bordered" value={query} onChange={(e) => { setQuery(e.target.value) }} ></input>
+            <button className="btn" onClick={() => { mutation.mutate({ prompt: query }) }}>Submit</button>
+            {result}
         </div>
     );
 }
