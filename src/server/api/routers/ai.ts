@@ -44,7 +44,7 @@ export const aiRouter = createTRPCRouter({
       `;
 
       const response = await cohere.generate({
-        // model: 6bb104cd-75d6-4898-93bb-a0618bc12434
+        model: "6bb104cd-75d6-4898-93bb-a0618bc12434-ft",
         prompt: prompt,
         max_tokens: 200,
         temperature: 0.5,
