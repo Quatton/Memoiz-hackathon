@@ -50,6 +50,8 @@ const Home: NextPage = () => {
             </p>
             <AuthShowcase />
           </div>
+          <Link href={'/chat'} className="btn btn-primary">Chat</Link>
+          <Link href={'/classify'} className="btn btn-primary">Classify</Link>
         </div>
       </main>
     </>
