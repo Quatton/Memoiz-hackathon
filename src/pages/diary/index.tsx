@@ -1,10 +1,33 @@
 import { type NextPage } from "next";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
-import Link from "next/link";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import { UserCard } from "src/components/user_card";
 import { api } from "src/utils/api";
 
 const DiaryPage: NextPage = () => {
-  const { data } = api.diary.getMyDiary.useQuery();
+  const { data: sessionData } = useSession();
+  const { data: diaryData, refetch: refetchDiary } =
+    api.diary.getMyDiaries.useQuery(
+      undefined, // no input
+      { enabled: sessionData?.user !== undefined }
+    );
+  const router = useRouter();
+
+  const [loading, setLoading] = useState(false);
+
+  const mutation = api.diary.createDiary.useMutation({
+    onSuccess: async (_) => {
+      await refetchDiary();
+      setLoading(false);
+      await router.push("/diary/[id]");
+    },
+    onError: (e) => {
+      console.error(e);
+      setLoading(false);
+    },
+  });
 
   return (
     <>
@@ -14,31 +37,54 @@ const DiaryPage: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center">
-        <div className="navbar px-4">
+        <div className="navbar flex items-center px-4">
           <div className="logo navbar-start text-3xl font-semibold">Diary</div>
-          <div className="navbar-end">
-            <Link href="/diary/create">
-              <button className="btn-primary btn">Create</button>
-            </Link>
+
+          <div className="navbar-end gap-2">
+            <UserCard />
           </div>
         </div>
         <div className="w-full p-2">
-          <table className="table w-full">
+          <table className="table-compact table w-full">
             <thead>
               <tr>
                 <th>Date</th>
                 <th>Title</th>
+                <th className="w-min">
+                  <button
+                    onClick={() => {
+                      if (loading) return;
+                      setLoading(true);
+                      mutation.mutate({
+                        title: "New diary",
+                        content: "",
+                      });
+                    }}
+                    className={`btn-primary btn-xs btn ${
+                      loading ? "btn-disabled" : ""
+                    }`}
+                  >
+                    Create
+                  </button>
+                </th>
               </tr>
             </thead>
             <tbody>
-              {data?.map((diary) => (
-                <tr key={diary.id}>
+              {diaryData?.map((diary) => (
+                <tr
+                  key={diary.id}
+                  onClick={() => {
+                    void router.push(`/diary/view/${diary.id}`);
+                  }}
+                  className="hover cursor-pointer"
+                >
                   <td>
                     {Intl.DateTimeFormat("en-US").format(
                       new Date(diary.createdAt)
                     )}
                   </td>
                   <td>{diary.title}</td>
+                  <td></td>
                 </tr>
               ))}
             </tbody>
