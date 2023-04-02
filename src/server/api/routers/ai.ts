@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import { createTRPCRouter, publicProcedure } from "src/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 import cohere from "cohere-ai";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
 
 export const aiRouter = createTRPCRouter({
-  getAIres: publicProcedure
+  getAIres: protectedProcedure
     .input(z.object({ prompt: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const response = await cohere.generate({
@@ -19,7 +19,7 @@ export const aiRouter = createTRPCRouter({
       return res;
     }),
 
-  classify: publicProcedure
+  classify: protectedProcedure
     .input(z.object({ prompt: z.string() }))
     .mutation(async ({ ctx, input }) => {
       console.log(input.prompt);
