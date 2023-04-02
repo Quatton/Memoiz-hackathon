@@ -74,7 +74,7 @@ const DiaryPage: NextPage = () => {
                 <tr
                   key={diary.id}
                   onClick={() => {
-                    void router.push(`/diary/view/${diary.id}`);
+                    void router.push(`/diary/${diary.id}`);
                   }}
                   className="hover cursor-pointer"
                 >
