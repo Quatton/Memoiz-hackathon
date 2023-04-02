@@ -34,20 +34,23 @@ export const aiRouter = createTRPCRouter({
         1. If the question is about your diary, you answer it by looking at your diary. If you don't have an answer, you must admit it and give a compensation answer.
         2. If the question is not about your diary, please answer it as a normal question answering bot.
         3. You must answer the question with a full sentence, in an appropriate tone, and with correct grammar. You must also answer the question in a way that is consistent with your personality which is uplifting, positive, and encouraging.
-
+        4. You must generate one answer for each question. You cannot generate more questions.
+        
         Diary:
         Date,Title,Content
         ${diaryBody}
 
         Question: ${input.question}
-        Answer:
-      `;
+        Answer:`;
 
       const response = await cohere.generate({
         model: "6bb104cd-75d6-4898-93bb-a0618bc12434-ft",
         prompt: prompt,
-        max_tokens: 200,
-        temperature: 0.5,
+        max_tokens: 150,
+        temperature: 0.7,
+        stop_sequences: ["--"],
+        num_generations: 1,
+        frequency_penalty: 0.5,
       });
 
       let answer = "";
