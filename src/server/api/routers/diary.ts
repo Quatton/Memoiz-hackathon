@@ -11,6 +11,23 @@ export const diaryRouter = createTRPCRouter({
     });
   }),
 
+  getDiariesByDateTime: protectedProcedure
+    .input(
+      z.object({
+        datetime: z.string().datetime(),
+      })
+    )
+    .query(({ ctx, input }) => {
+      return ctx.prisma.diary.findMany({
+        where: {
+          authorId: ctx.session.user.id,
+          AND: {
+            createdAt: input.datetime,
+          },
+        },
+      });
+    }),
+
   getDiaryById: protectedProcedure
     .input(
       z.object({

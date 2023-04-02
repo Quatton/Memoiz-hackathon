@@ -3,24 +3,47 @@ import Head from "next/head";
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 
+
 import { api } from "src/utils/api";
 import Calendar from "src/components/calendar";
 import { useEffect, useState } from "react";
+import dayjs from "dayjs";
 
 const Home: NextPage = () => {
+  const { data: sessionData } = useSession();
+
+  const { data: diaryData, refetch: refetchDiary } =
+    api.diary.getMyDiaries.useQuery(
+      undefined, // no input
+      { enabled: sessionData?.user !== undefined }
+    );
+
   const [selectedDay, setSelectedDay] = useState<Date>()
-  const [diary, setDiary] = useState<{ title: string }[]>([])
+  const [diary, setDiary] = useState<{ title: string, content: string }[]>([])
   const moods: { [key: string]: "happy" | "sad" } = {
     "2023/04/02": "happy",
     "2023/04/01": "sad"
   }
   useEffect(() => {
-    if (selectedDay) {
-      if (selectedDay.getDate() % 2 == 0)
-        setDiary([{ title: `Date: ${selectedDay?.toDateString()}` }])
-      else setDiary([])
+    if (selectedDay && diaryData) {
+      setDiary(diaryData.filter((data) => {
+        console.log(dayjs(selectedDay))
+        console.log(dayjs(data.createdAt))
+        console.log(dayjs(selectedDay).isSame(dayjs(data.createdAt), "day"))
+        return dayjs(selectedDay).isSame(dayjs(data.createdAt), "day")
+      }).map((data) => {
+        return {
+          title: data.title,
+          content: data.content
+        }
+      }))
+
     }
-  }, [selectedDay])
+  }, [selectedDay, diaryData])
+
+  useEffect(() => {
+    console.log(diaryData)
+  }, [diaryData])
   return (
     <>
       <Head>
@@ -34,12 +57,12 @@ const Home: NextPage = () => {
             setSelectedDay(val)
 
           }} />
-          <div>
+          <div className="flex flex-col gap-3">
             {diary && diary.length > 0 ?
               diary.map((currentDiary, idx) => {
-                return <div key={idx} className="w-72 h-20 bg-white rounded-md p-3">
+                return <div key={idx} className="w-72  bg-white rounded-md p-3">
                   <h1 className="font-bold text-primary">{currentDiary.title}</h1>
-                  <h1 className="text-secondary">HIHIHIHIH</h1>
+                  <p>{currentDiary.content}</p>
                 </div>
               }) :
               <div className="w-72 h-20 bg-white rounded-md p-3 flex justify-center items-center">
