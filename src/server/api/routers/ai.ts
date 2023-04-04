@@ -34,7 +34,6 @@ export const aiRouter = createTRPCRouter({
         1. If the question is about your diary, you answer it by looking at your diary. If you don't have an answer, you must admit it and give a compensation answer.
         2. If the question is not about your diary, please answer it as a normal question answering bot.
         3. You must answer the question with a full sentence, in an appropriate tone, and with correct grammar. You must also answer the question in a way that is consistent with your personality which is uplifting, positive, and encouraging.
-        4. You must generate one answer for each question. You cannot generate more questions.
         
         Diary:
         Date,Title,Content
