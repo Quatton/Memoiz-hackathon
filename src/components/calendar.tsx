@@ -3,8 +3,8 @@ import dayjs from 'dayjs';
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import { colors } from "./Mood";
 type Dayjs = dayjs.Dayjs
-const Calendar = ({ onClick, moods }: {
-    onClick: (day: Date) => void, moods: { [key: string]: "happy" | "sad" }
+const Calendar = ({ onClick, moods, selecting }: {
+    onClick: (day: Date) => void, moods: { [key: string]: "happy" | "sad" }, selecting: (Date | undefined)
 }) => {
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
 
@@ -77,17 +77,22 @@ const Calendar = ({ onClick, moods }: {
                         <div key={`week-${weekIndex}`} className="flex justify-between">
                             {week.map((day, dayIndex) => {
                                 let bgColor = ""
+                                const isSameMonth = selectedDate.clone().toDate().getMonth() !== day.getMonth()
 
                                 const dayStr = dayjs(day).format("YYYY/MM/DD")
+                                const isToday = dayjs(currentDay).isSame(day, "date")
                                 if (moods[dayStr] != undefined) {
                                     if (moods[dayStr] === 'happy') bgColor = colors['happy']
                                     else if (moods[dayStr] === 'sad') bgColor = colors['sad']
                                 }
+
                                 return (
                                     <div className={`w-8 h-8 text-center transition-colors rounded-md flex justify-center items-center
-                            hover:cursor-pointer hover:bg-primary-focus 
-                             ${selectedDate.clone().toDate().getMonth() !== day.getMonth() ? "text-gray-200 hover:text-white" :
-                                            dayjs(currentDay).isSame(day, "date") ? "text-red-500 hover:text-red-400" : "text-gray-500 hover:text-white"}
+                                     hover:cursor-pointer hover:bg-primary-focus 
+                                    ${isSameMonth ? "text-gray-200 hover:text-white"
+                                            :
+                                            isToday ? "text-red-500 hover:text-red-400"
+                                                : "text-gray-500 hover:text-white"}
                                     ${bgColor}
                                     `}
                                         key={`day-${dayIndex}`}

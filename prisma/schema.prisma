@@ -82,3 +82,14 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Segment {
+  id         String  @id
+  segment    String
+  authorId   String
+  diaryId    String
+  embeddings String?
+
+  @@index([authorId])
+  @@index([diaryId])
+}

@@ -1,10 +1,8 @@
-import { useState } from "react";
-
 export const colors = {
     'happy': 'bg-yellow-100',
     'sad': 'bg-purple-200'
 }
-const Mood = () => {
+const Mood = ({ setMood }: { setMood: (x: ('happy' | 'sad')) => void }) => {
     const moods: ('happy' | 'sad')[] = ['happy', 'sad']
 
     return (
@@ -14,8 +12,11 @@ const Mood = () => {
                 {moods.map((x) => {
                     return (
                         <button
-                            className={`btn btn-info btn-sm flex items-center text-center justify-center rounded-md  text-white`}
+                            className={`btn btn-accent btn-sm flex items-center text-center justify-center rounded-md  text-white`}
                             key={x}
+                            onClick={() => {
+                                setMood(x)
+                            }}
                         >
                             {x}
                         </button>
