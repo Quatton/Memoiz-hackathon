@@ -52,7 +52,7 @@ const DiaryPage: NextPage = () => {
                 <th>Title</th>
                 <th className="w-min">
                   <button
-                    className="btn-primary btn-xs btn"
+                    className="btn-primary btn-sm btn"
                     onClick={() => {
                       if (loading) return;
                       setLoading(true);

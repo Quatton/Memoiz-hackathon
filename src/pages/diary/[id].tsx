@@ -160,7 +160,7 @@ const DiaryViewPage: NextPage = () => {
             { title: "Create a diary", path: "/diary/create" },
           ]}
         />
-        <form className="w-full p-2">
+        <form className="flex w-full flex-col gap-2 p-2">
           <div className="flex w-full items-center rounded-md bg-base-300 p-4 shadow-md">
             {!data?.isArchived ? (
               <button
@@ -178,18 +178,22 @@ const DiaryViewPage: NextPage = () => {
             ) : (
               <button className="btn-disabled btn-sm btn">
                 <BsArchiveFill />
-                Archived
+                <span className="ml-2">Archived</span>
               </button>
             )}
 
-            <button
-              className="btn-secondary btn-sm btn ml-auto"
-              onClick={() => {
-                void save();
-              }}
-            >
-              Save
-            </button>
+            {!data.isArchived ? (
+              <button
+                className="btn-secondary btn-sm btn ml-auto"
+                onClick={() => {
+                  void save();
+                }}
+              >
+                Save
+              </button>
+            ) : (
+              <button className="btn-disabled btn-sm btn ml-auto">Save</button>
+            )}
           </div>
 
           {updateDiary.error && (
@@ -220,7 +224,8 @@ const DiaryViewPage: NextPage = () => {
           <div className="form-control">
             <textarea
               placeholder="Content"
-              className="textarea-ghost textarea resize-none"
+              cols={30}
+              className="textarea-ghost textarea h-48 resize-none"
               value={content}
               onChange={(e) => {
                 setContent(e.target.value);
