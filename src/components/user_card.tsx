@@ -16,7 +16,7 @@ export const UserCard: React.FC = () => {
     <div className="flex flex-row items-center justify-center gap-2">
       <p>{sessionData && <span>{sessionData.user?.name}</span>}</p>
       <button
-        className="btm-xs btn-primary btn"
+        className="btn-sm btn-accent btn"
         onClick={sessionData ? () => void signOut() : () => void signIn()}
       >
         {sessionData ? "Sign out" : "Sign in"}
