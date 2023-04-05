@@ -18,6 +18,7 @@ import { GiNotebook } from 'react-icons/gi'
 import { IoMdWarning } from 'react-icons/io'
 import Nav from "src/components/Nav";
 import Mood from "src/components/Mood";
+import AppName from "src/components/AppName";
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -32,10 +33,10 @@ const Home: NextPage = () => {
 
   const [selectedDay, setSelectedDay] = useState<Date>()
   const [diary, setDiary] = useState<{ title: string, content: string, id: string }[]>([])
-  const moods: { [key: string]: "happy" | "sad" } = {
+  const [moods, setMoods] = useState<{ [key: string]: "happy" | "sad" }>({
     "2023/04/02": "happy",
     "2023/04/01": "sad"
-  }
+  })
   useEffect(() => {
     if (selectedDay && diaryData) {
       setDiary(diaryData.filter((data) => {
@@ -64,21 +65,25 @@ const Home: NextPage = () => {
   else if (sessionStatus === 'unauthenticated') {
     return <ToSignIn />
   }
+  const setMood = (x: ('happy' | 'sad')) => {
+    setMoods((temp) => {
+      temp[dayjs().format('YYYY/MM/DD')] = x
+      return temp
+    })
+    return
+  }
   return (
     <>
       {/* TODO */}
       <Header title="" desc="" />
       <Container >
-        <Nav breads={[{ title: 'Home', path: '/' }]} />
+        <Nav breads={[]} />
         <main className="flex flex-col justify-center items-center max-w-3xl mx-auto gap-6">
-          <div className="flex flex-col justify-center items-center">
-            <h1 className="text-white text-4xl font-bold">APP NAME</h1>
-            <h1 className="text-white text-lg">description...</h1>
-          </div>
-          <Mood />
+          <AppName />
+          <Mood setMood={setMood} />
           <Calendar moods={moods} onClick={(val) => {
             setSelectedDay(val)
-          }} />
+          }} selecting={selectedDay} />
           <div className="flex flex-col gap-3">
             {diary && diary.length > 0 ?
               diary.map((currentDiary, idx) => {
@@ -92,7 +97,7 @@ const Home: NextPage = () => {
                 </div>
               }) :
               <div className="w-72 md:w-96 h-20 bg-white rounded-md p-3 flex justify-center items-center">
-                <h1 className="text-error flex items-center gap-2"><IoMdWarning size={22} /> Oops! No diary on this day</h1>
+                <h1 className="text-error flex items-center gap-2"><IoMdWarning size={22} /> Oops! No diary on {dayjs(selectedDay).format('D MMM YYYY')}</h1>
 
               </div>
             }

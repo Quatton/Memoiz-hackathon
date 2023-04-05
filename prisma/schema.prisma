@@ -9,13 +9,15 @@ datasource db {
 }
 
 model Diary {
-	id        String   @id @default(cuid())
-  title     String
-  content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  authorId   String
+  isArchived Boolean  @default(false)
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
   @@index([authorId])
 }
 
@@ -65,4 +67,15 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Segment {
+  id         String  @id
+  segment    String
+  authorId   String
+  diaryId    String
+  embeddings String?
+
+  @@index([authorId])
+  @@index([diaryId])
 }
