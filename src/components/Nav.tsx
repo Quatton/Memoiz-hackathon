@@ -3,7 +3,7 @@ import { UserCard } from "./user_card";
 
 const Nav = ({ breads }: { breads: { title: string, path: string }[] }) => {
     return (
-        <div className="navbar bg-base-300 top-0 fixed z-50 px-5">
+        <div className="navbar bg-base-300 top-0 fixed z-50 px-5 shadow-md">
             <Link href={'/'} className="btn btn-ghost normal-case text-3xl pb-1 mr-4 font-logo">Memoiz</Link>
             {/* <div className="logo navbar-start text-3xl font-semibold">Diary</div> */}
 

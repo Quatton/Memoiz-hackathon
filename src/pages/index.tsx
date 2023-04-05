@@ -12,7 +12,7 @@ import Loading from "src/components/Loading";
 import ToSignIn from "src/components/ToSignIn";
 import Header from "src/components/Header";
 import Container from "src/components/Container";
-import { BsChatFill } from "react-icons/bs";
+import { BsChatFill, BsEyeFill } from "react-icons/bs";
 import { GiNotebook } from "react-icons/gi";
 import { IoMdWarning } from "react-icons/io";
 import Nav from "src/components/Nav";
@@ -21,6 +21,18 @@ import AppName from "src/components/AppName";
 
 const Home: NextPage = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const mutation = api.diary.createDiary.useMutation({
+    onSuccess: async (_) => {
+      await refetchDiary();
+      setLoading(false);
+    },
+    onError: (e) => {
+      console.error(e);
+    },
+  });
+
 
   const { data: sessionData, status: sessionStatus } = useSession();
 
@@ -65,6 +77,20 @@ const Home: NextPage = () => {
     console.log(diaryData);
   }, [diaryData]);
 
+
+  const handleCreateDiary = () => {
+    if (loading) return;
+    setLoading(true);
+    void mutation.mutateAsync({
+      title: "Untitled",
+      content: "",
+    }).then((x) => {
+      void router.push(`/diary/${x.id}`)
+      setLoading(false)
+    });
+  }
+
+
   if (sessionStatus === "loading") {
     return <Loading />;
   } else if (sessionStatus === "unauthenticated") {
@@ -77,6 +103,8 @@ const Home: NextPage = () => {
     });
     return;
   };
+
+
   return (
     <>
       <Header title="" desc="" />
@@ -92,26 +120,28 @@ const Home: NextPage = () => {
             }}
             selecting={selectedDay}
           />
-          <div className="flex flex-col gap-3">
+
+          <div className="flex flex-col justify-center items-center gap-3">
+            {dayjs(selectedDay).format("D MMM YYYY")}
             {diary && diary.length > 0 ? (
               diary.map((currentDiary, idx) => {
                 return (
                   <div
-                    className="w-72 rounded-md  bg-white p-3 transition-colors hover:cursor-pointer hover:bg-gray-200 md:w-96"
+                    className="w-72 rounded-xl  bg-white p-3 transition-colors hover:cursor-pointer hover:bg-gray-200 md:w-96"
                     key={currentDiary.id}
                     onClick={() => {
                       void router.push(`/diary/${currentDiary.id}`);
                     }}
                   >
-                    <h1 className="font-bold text-primary">
+                    <h1 className="font-bold text-lg text-accent">
                       {currentDiary.title}
                     </h1>
-                    <p>{currentDiary.content}</p>
+                    <p className="text-base-content">{currentDiary.content.slice(0, 50)}{currentDiary.content.length > 50 ? '...' : ''}</p>
                   </div>
                 );
               })
             ) : (
-              <div className="flex h-20 w-72 items-center justify-center rounded-md bg-white p-3 md:w-96">
+              <div className="flex h-20 w-72 items-center justify-center rounded-xl bg-white p-3 md:w-96">
                 <h1 className="flex items-center gap-2 text-error">
                   <IoMdWarning size={22} /> Oops! No diary on{" "}
                   {dayjs(selectedDay).format("D MMM YYYY")}
@@ -119,12 +149,20 @@ const Home: NextPage = () => {
               </div>
             )}
           </div>
-          <Link
-            href={"/diary"}
-            className="btn-primary btn flex items-center gap-2"
-          >
-            Write A Diary! <GiNotebook size={24} />
-          </Link>
+          <div className="flex gap-6">
+            <button
+              className={`btn-primary btn flex items-center gap-2 ${loading ? 'loading' : ''}`}
+              onClick={() => { handleCreateDiary() }}
+            >
+              {loading ? 'Loading...' : 'Write A Diary!'}<GiNotebook size={24} />
+            </button>
+            <Link
+              href={"/diary"}
+              className="btn-primary btn flex items-center gap-2"
+            >
+              View all diaries <BsEyeFill size={22} />
+            </Link>
+          </div>
           <Link
             href={"/chat"}
             className="btn-primary btn flex items-center gap-2"

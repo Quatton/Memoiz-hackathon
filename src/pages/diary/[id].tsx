@@ -155,16 +155,16 @@ const DiaryViewPage: NextPage = () => {
       <main className="flex min-h-screen w-full flex-col items-center">
         <Nav
           breads={[
-            { title: "Home", path: "" },
+            { title: "Home", path: "/" },
             { title: "Diary", path: "/diary" },
-            { title: "Create a diary", path: "/diary/create" },
+            { title: "Write a diary", path: "/diary/create" },
           ]}
         />
-        <form className="flex w-full flex-col gap-2 p-2">
+        <form className="flex w-full flex-col gap-2 p-2 max-w-4xl mx-auto">
           <div className="flex w-full items-center rounded-md bg-base-300 p-4 shadow-md">
             {!data?.isArchived ? (
               <button
-                className="btn-sm btn"
+                className="btn-sm btn btn-primary"
                 onClick={() => {
                   if (archive.isLoading) return;
                   void archive.mutateAsync({
@@ -184,7 +184,7 @@ const DiaryViewPage: NextPage = () => {
 
             {!data.isArchived ? (
               <button
-                className="btn-secondary btn-sm btn ml-auto"
+                className="btn-accent btn-sm btn ml-auto"
                 onClick={() => {
                   void save();
                 }}
@@ -203,12 +203,12 @@ const DiaryViewPage: NextPage = () => {
           )}
 
           <div className="text-center text-gray-500">
-            {`Last updated at ${
-              (updatedAt
-                ? updatedAt.toLocaleString()
-                : data?.updatedAt.toLocaleString()) || ""
-            }`}
+            {`Last updated at ${(updatedAt
+              ? updatedAt.toLocaleString()
+              : data?.updatedAt.toLocaleString()) || ""
+              }`}
           </div>
+
           <div className="form-control">
             <input
               type="text"
@@ -223,9 +223,9 @@ const DiaryViewPage: NextPage = () => {
           </div>
           <div className="form-control">
             <textarea
-              placeholder="Content"
+              placeholder="Type something here..."
               cols={30}
-              className="textarea-ghost textarea h-48 resize-none"
+              className="textarea-bordered textarea h-96 resize-none"
               value={content}
               onChange={(e) => {
                 setContent(e.target.value);

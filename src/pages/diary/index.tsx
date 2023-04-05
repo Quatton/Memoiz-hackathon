@@ -24,6 +24,7 @@ const DiaryPage: NextPage = () => {
     onSuccess: async (_) => {
       await refetchDiary();
       setLoading(false);
+      return 'Dude'
     },
     onError: (e) => {
       console.error(e);
@@ -43,23 +44,25 @@ const DiaryPage: NextPage = () => {
           { title: "Diary", path: "/diary" },
         ]}
       />
-      <main className="flex min-h-screen w-full flex-col items-center">
-        <div className="w-full p-2">
+      <main className="flex min-h-screen w-full flex-col items-center ">
+        <div className="w-full">
           <table className="table-compact table w-full">
             <thead>
               <tr>
                 <th></th>
                 <th>Date</th>
                 <th>Title</th>
-                <th className="w-min">
+                <th className="">
                   <button
-                    className="btn-primary btn-sm btn"
+                    className={`btn-primary btn-sm btn ${loading ? 'loading' : ''}`}
                     onClick={() => {
                       if (loading) return;
                       setLoading(true);
                       void mutation.mutateAsync({
                         title: "Untitled",
                         content: "",
+                      }).then((x) => {
+                        console.log(x)
                       });
                     }}
                   >
@@ -79,16 +82,16 @@ const DiaryPage: NextPage = () => {
                     void router.push(`/diary/${diary.id}`);
                   }}
                 >
-                  <td>
-                    {diary.isArchived ? <BsArchiveFill /> : <BsArchive />}
-                  </td>
-                  <td>
+                  <th className="">
+                    {diary.isArchived ? <BsArchiveFill className="text-primary ml-2" /> : <BsArchive className="ml-2" />}
+                  </th>
+                  <td className="">
                     {Intl.DateTimeFormat("en-US").format(
                       new Date(diary.createdAt)
                     )}
                   </td>
-                  <td>{diary.title}</td>
-                  <td></td>
+                  <td className="">{diary.title}</td>
+                  <td className=" truncate">{diary.content.length > 30 ? `${diary.content.slice(0, 30)}...` : diary.content}</td>
                 </tr>
               ))}
             </tbody>
