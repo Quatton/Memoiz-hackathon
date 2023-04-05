@@ -1,8 +1,7 @@
 import { type NextPage } from "next";
-import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { BsArchive, BsArchiveFill } from "react-icons/bs";
 import Container from "src/components/Container";
 import Header from "src/components/Header";
 import Loading from "src/components/Loading";
@@ -10,119 +9,223 @@ import Nav from "src/components/Nav";
 import { api } from "src/utils/api";
 
 const DiaryViewPage: NextPage = () => {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const router = useRouter();
 
-  const {
-    data: diaryData,
-    isLoading,
-    refetch,
-  } = api.diary.getDiaryById.useQuery(
+  const { data, isLoading, refetch } = api.diary.getDiaryById.useQuery(
     {
-      id: router.query.id as string,
+      id: (router.query.id as string) || "",
     },
     {
       onSuccess(data) {
         if (data) {
           setTitle(data.title);
-          setContent(data.content);
+          setContent(data.content as string);
+          setPayload({
+            title: data.title,
+            content: data.content as string,
+          });
+          return;
         }
+
+        void router.push("/diary");
+      },
+
+      onError() {
+        void router.push("/diary");
       },
     }
   );
 
-  const mutation = api.diary.updateDiary.useMutation();
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  const updateDiary = api.diary.updateDiary.useMutation({});
 
   // auto-save
   const [payload, setPayload] = useState({
-    id: "",
     title: "",
     content: "",
   });
+
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
-  useEffect(() => {
-    if (diaryData) {
-      // check if title & content is the same as last payload
-      if (title === payload.title && content === payload.content) return;
+  const save = useCallback(async () => {
+    // if empty, do not save
+    if (title === "" || content === "") return;
 
-      const autoSaveInterval = setInterval(() => {
-        if (title === diaryData.title && content === diaryData.content) return;
-        void mutation
-          .mutateAsync({
-            id: router.query.id as string,
-            title,
-            content,
-          })
-          .then((_) => {
-            setUpdatedAt(new Date());
-            setPayload({
-              id: router.query.id as string,
-              title,
-              content,
-            });
+    if (title === payload.title && content === payload.content) return;
+
+    const id = router.query.id as string;
+    await updateDiary.mutateAsync(
+      {
+        id,
+        title: title,
+        content: content,
+      },
+
+      {
+        onSuccess: (data) => {
+          setPayload({
+            title: data.title,
+            content: data.content,
           });
-      }, 5000);
+          setUpdatedAt(data.updatedAt);
+        },
+      }
+    );
+  }, [title, content, payload, updateDiary, router.query.id]);
+
+  useEffect(() => {
+    if (router.query.id) {
+      const timer = setTimeout(() => {
+        void save();
+      }, 3000);
 
       return () => {
-        clearInterval(autoSaveInterval);
+        clearTimeout(timer);
       };
     }
   }, [
     title,
     content,
-    mutation,
     router.query.id,
-    diaryData,
     payload.title,
     payload.content,
+    updateDiary,
+    save,
   ]);
 
-  if (isLoading) {
-    return <Loading />
+  // time left before archive
+  const [timeLeft, setTimeLeft] = useState({
+    hour: "00",
+    minute: "00",
+    second: "00",
+  });
+
+  // you can manually archive for now
+  // useEffect(() => {
+  //   if (!data) return;
+
+  //   if (data.isArchived || !data.createdAt) return;
+
+  //   const timer = setInterval(() => {
+  //     const createdAt = new Date(data.createdAt);
+
+  //     // will archive in the next 24 hr
+  //     const archiveAt = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
+  //     const now = new Date();
+
+  //     const diff = archiveAt.getTime() - now.getTime();
+
+  //     const hour = Math.floor(diff / (1000 * 60 * 60))
+  //       .toString()
+  //       .padStart(2, "0");
+  //     const minute = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+  //       .toString()
+  //       .padStart(2, "0");
+  //     const second = Math.floor((diff % (1000 * 60)) / 1000)
+  //       .toString()
+  //       .padStart(2, "0");
+
+  //     setTimeLeft({
+  //       hour,
+  //       minute,
+  //       second,
+  //     });
+  //   }, 1000);
+
+  //   return () => {
+  //     clearInterval(timer);
+  //   };
+  // }, [data]);
+
+  const archive = api.diary.archiveDiary.useMutation({
+    onSuccess: () => {
+      void refetch();
+    },
+  });
+
+  if (isLoading || !data) {
+    return <Loading />;
   }
 
   return (
     <Container>
       <Header title="Create a diary" desc="" />
-      <main className="flex w-full min-h-screen flex-col items-center">
-        <Nav breads={[{ title: 'Home', path: '' }, { title: 'Diary', path: '/diary' }, { title: 'Create a diary', path: '/diary/create' }]} />
+      <main className="flex min-h-screen w-full flex-col items-center">
+        <Nav
+          breads={[
+            { title: "Home", path: "" },
+            { title: "Diary", path: "/diary" },
+            { title: "Create a diary", path: "/diary/create" },
+          ]}
+        />
         <form className="w-full p-2">
-          {mutation.error && (
+          <div className="flex w-full items-center rounded-md bg-base-300 p-4 shadow-md">
+            {!data?.isArchived ? (
+              <button
+                className="btn-sm btn"
+                onClick={() => {
+                  if (archive.isLoading) return;
+                  void archive.mutateAsync({
+                    id: data.id,
+                  });
+                }}
+              >
+                <BsArchive />
+                <span className="ml-2">Archive</span>
+              </button>
+            ) : (
+              <button className="btn-disabled btn-sm btn">
+                <BsArchiveFill />
+                Archived
+              </button>
+            )}
+
+            <button
+              className="btn-secondary btn-sm btn ml-auto"
+              onClick={() => {
+                void save();
+              }}
+            >
+              Save
+            </button>
+          </div>
+
+          {updateDiary.error && (
             <div className="text-center text-red-500">
-              {mutation.error.message}
+              {updateDiary.error.message}
             </div>
           )}
 
           <div className="text-center text-gray-500">
-            {updatedAt && `Last updated at ${updatedAt.toLocaleString()}`}
+            {`Last updated at ${
+              (updatedAt
+                ? updatedAt.toLocaleString()
+                : data?.updatedAt.toLocaleString()) || ""
+            }`}
           </div>
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Title</span>
-            </label>
             <input
               type="text"
               placeholder="Title"
-              className="input-bordered input-primary input"
+              className="input-ghost input text-4xl font-semibold"
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
               }}
+              readOnly={data.isArchived}
             />
           </div>
           <div className="form-control">
-            <label className="label">
-              <span className="label-text">Content</span>
-            </label>
             <textarea
               placeholder="Content"
-              className="textarea-bordered textarea-primary textarea h-24 resize-none"
+              className="textarea-ghost textarea resize-none"
               value={content}
               onChange={(e) => {
                 setContent(e.target.value);
               }}
+              readOnly={data.isArchived}
             ></textarea>
           </div>
         </form>

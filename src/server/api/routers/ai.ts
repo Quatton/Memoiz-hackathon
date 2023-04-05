@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
+
 import cohere from "cohere-ai";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
@@ -47,7 +48,7 @@ export const aiRouter = createTRPCRouter({
         prompt: prompt,
         max_tokens: 150,
         temperature: 0.7,
-        stop_sequences: ["--"],
+        stop_sequences: ["Question", "--"],
         num_generations: 1,
         frequency_penalty: 0.5,
       });
