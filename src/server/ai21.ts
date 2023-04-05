@@ -27,6 +27,6 @@ export type TextSegmentationRes = {
   segments: Segment[];
 };
 
-export const ai21 = (api("@ai21-studio/v3.0#rkid1g1h6lbxhal56") as AI21).auth(
-  `Bearer ${process.env.AI21_API_KEY || ""}`
-);
+// export const ai21 = (api("@ai21-studio/v3.0#rkid1g1h6lbxhal56") as AI21).auth(
+//   `Bearer ${process.env.AI21_API_KEY || ""}`
+// );

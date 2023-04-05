@@ -19,10 +19,10 @@ const DiaryViewPage: NextPage = () => {
       onSuccess(data) {
         if (data) {
           setTitle(data.title);
-          setContent(data.content as string);
+          setContent(data.content);
           setPayload({
             title: data.title,
-            content: data.content as string,
+            content: data.content,
           });
           return;
         }

@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
@@ -28,7 +33,7 @@ const getSegmentedText = async (text: string) => {
 
   const res = await response.json();
 
-  return res.segments.map((segment) => segment.segmentText);
+  return res.segments.map((segment: any) => segment.segmentText);
 };
 
 export const diaryRouter = createTRPCRouter({
