@@ -23,6 +23,7 @@ const DiaryPage: NextPage = () => {
   const mutation = api.diary.createDiary.useMutation({
     onSuccess: async (_) => {
       await refetchDiary();
+      setLoading(false);
     },
     onError: (e) => {
       console.error(e);
