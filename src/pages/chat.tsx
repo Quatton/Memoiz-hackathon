@@ -21,7 +21,7 @@ const Home: NextPage = () => {
           },
         ] as typeof chat;
 
-        if (newChat.filter((x) => x.type === "received").length === 3) {
+        if (newChat.filter((x) => x.type === "received").length > 3) {
           newChat.push({
             text: "Chat ended. Please refresh the chat by the button below.",
             type: "received",
@@ -41,7 +41,7 @@ const Home: NextPage = () => {
     { text: string; type: "received" | "sent" }[]
   >([
     {
-      text: "Hey, Jims",
+      text: "Hey, what can I help?",
       type: "received",
     },
   ]);
@@ -90,7 +90,7 @@ const Home: NextPage = () => {
         ]}
       />
       <main className="mx-auto flex h-full w-full flex-col items-center justify-center gap-6">
-        <div className="flex w-72 items-center justify-center gap-2 rounded-xl md:w-96">
+        <div className="flex w-72 items-center justify-center gap-2 rounded-xl text-sm sm:text-base md:w-96">
           <MdWarning />
           <span>Chat history is not saved upon closing</span>
         </div>
