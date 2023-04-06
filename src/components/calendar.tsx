@@ -59,14 +59,14 @@ const Calendar = ({ onClick, moods, selecting }: {
                         size={25}
                         onClick={() => setSelectedDate((date) => date.subtract(1, "month"))}
                     />
-                    <h3 className="text-primary font-bold">{selectedDate.clone().format("MMM YYYY")}</h3>
+                    <h3 className="text-primary text-lg font-bold">{selectedDate.clone().format("MMM YYYY")}</h3>
                     <MdKeyboardArrowRight
                         className="text-secondary hover:cursor-pointer hover:text-secondary-focus"
                         size={25}
                         onClick={() => setSelectedDate((date) => date.add(1, "month"))}
                     />
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between font-semibold">
                     {generateWeeksOfTheMonth[0] && generateWeeksOfTheMonth[0].map((day, index) => (
                         <div key={`week-day-${index}`} className="h-8 w-8 flex justify-center items-center text-info">
                             {dayjs(day).format("dd")}
@@ -114,7 +114,7 @@ const Calendar = ({ onClick, moods, selecting }: {
             <div className="flex gap-3 flex-wrap w-72 md:w-96">
                 {allMoods.map((mood) => {
                     return <div className="flex items-center gap-2" key={mood}>
-                        <div className={`w-4 h-4 rounded-md ${colors[mood]}`}></div><div>{mood}</div>
+                        <div className={`w-4 h-4 rounded-md ${colors[mood]}`}></div><div className="capitalize">{mood}</div>
                     </div>
                 })}
 

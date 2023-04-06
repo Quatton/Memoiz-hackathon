@@ -24,7 +24,7 @@ const Loading = () => {
   return (
     <Container>
       <h1 className="text-xl font-bold">Did you know that ...</h1>
-      <p className="mb-6">{randomized}</p>
+      <p className="mb-6 text-center">{randomized}</p>
       <CgSpinner size={32} className="animate-spin" />
     </Container>
   );
