@@ -15,9 +15,9 @@ async function knnSearch(
   authorId: string,
   query_vector: number[]
 ) {
-  const query_vector_bytes = Buffer.from(query_vector);
-  const query = `*=>[KNN ${topK} @embedding $query_vec AS vector_score]`;
-  const res = await client.ft.search(`diary:${authorId}`, query, {
+  const query_vector_bytes = Buffer.from(new Float32Array(query_vector).buffer);
+  const query = `(@authorId:${authorId})=>[KNN ${topK} @embedding $query_vec AS vector_score]`;
+  const res = await client.ft.search(`diary`, query, {
     DIALECT: 2,
     SORTBY: "vector_score",
     PARAMS: {
@@ -27,7 +27,7 @@ async function knnSearch(
       from: 0,
       size: topK,
     },
-    RETURN: ["id", "title", "content", "created_at", "embedding"],
+    RETURN: ["title", "content", "createdAt"],
   });
 
   return res;
@@ -57,25 +57,25 @@ export const aiRouter = createTRPCRouter({
 
       await redis.quit();
 
-      console.log(entries.documents);
-
-      // document schema
       const schema = z.object({
         title: z.string(),
         content: z.string(),
-        createdAt: z.number(),
+        createdAt: z.string(),
       });
 
       const diaryBody = entries.documents
         .map(({ value }) => {
           const parsed = schema.safeParse(value);
           if (parsed.success) {
-            return `Intl.DateTimeFormat("en-US").format(new Date(${parsed.data.createdAt})),${parsed.data.title},${parsed.data.content}`;
+            return `${Intl.DateTimeFormat("en-US").format(
+              new Date(parseInt(parsed.data.createdAt))
+            )},${parsed.data.title},${parsed.data.content
+              .split("\n")
+              .join(" ")}`;
           }
+          console.log(value);
         })
         .join("\n");
-
-      console.log(diaryBody);
 
       const prompt = `
         You are a question answering bot. You are given a question and here is how you answer it.
@@ -83,11 +83,13 @@ export const aiRouter = createTRPCRouter({
         2. If the question is not about your diary, please answer it as a normal question answering bot.
         3. You must answer the question with a full sentence, in an appropriate tone, and with correct grammar. You must also answer the question in a way that is consistent with your personality which is uplifting, positive, and encouraging.
         
-        Diary:
+        Refer to your diary entries below:
         ${diaryBody}
 
         Question: ${input.question}
         Answer:`;
+
+      console.log(prompt);
 
       const response = await cohere.generate({
         model: "command-xlarge-nightly",

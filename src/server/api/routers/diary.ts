@@ -9,10 +9,9 @@ import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 import cohere from "cohere-ai";
 import { TRPCError } from "@trpc/server";
-import { TextSegmentationRes } from "src/server/ai21";
 import { redis } from "src/server/redis";
-import { Diary } from "@prisma/client";
-import { RediSearchSchema, SchemaFieldTypes, VectorAlgorithms } from "redis";
+import { SchemaFieldTypes, VectorAlgorithms } from "redis";
+import { type Diary } from "@prisma/client";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
 
@@ -44,54 +43,60 @@ async function load_vector(
   diary: Diary,
   vector: number[]
 ) {
-  const key = `diary:${diary.authorId}:${diary.id}`;
-  const diary_vector_bytes = Buffer.from(vector);
+  const key = `diary:${diary.id}`;
 
   const diary_data = {
     title: diary.title,
     content: diary.content,
     createdAt: diary.createdAt.getTime(),
-    embedding: diary_vector_bytes,
+    embedding: vector,
+    authorId: diary.authorId,
   };
 
-  await client.hSet(key, "title", diary.title);
-  await client.hSet(key, "content", diary.content);
-  await client.hSet(key, "createdAt", diary.createdAt.getTime());
-  await client.hSet(key, "embedding", diary_vector_bytes);
+  await client.json.set(key, "$", diary_data);
 }
 
 async function create_flat_index(
-  client: typeof redis,
-  authorId: string,
   vector_dimension = 4096,
   distance_metric: "L2" | "IP" | "COSINE" = "L2"
 ) {
   // const number_of_vectors = parseInt(
   //   (await client.get(`diary:${authorId}:count`)) || "0"
   // );
-  await client.ft.create(
-    `diary:${authorId}`,
+  await redis.ft.create(
+    `diary`,
     {
-      embedding: {
+      "$.embedding": {
         type: SchemaFieldTypes.VECTOR,
         TYPE: "FLOAT32",
         ALGORITHM: VectorAlgorithms.FLAT,
         DIM: vector_dimension,
         DISTANCE_METRIC: distance_metric,
+        AS: "embedding",
         // INITIAL_CAP: number_of_vectors,
         // BLOCK_SIZE: number_of_vectors,
       },
-      title: {
+      "$.authorId": {
         type: SchemaFieldTypes.TEXT,
+        AS: "authorId",
       },
-      content: {
+      "$.title": {
         type: SchemaFieldTypes.TEXT,
+        AS: "title",
       },
-      createdAt: {
+      "$.content": {
+        type: SchemaFieldTypes.TEXT,
+        AS: "content",
+      },
+      "$.createdAt": {
         type: SchemaFieldTypes.NUMERIC,
+        AS: "createdAt",
       },
     },
-    {}
+    {
+      ON: "JSON",
+      PREFIX: "diary",
+    }
   );
 }
 
@@ -178,11 +183,12 @@ export const diaryRouter = createTRPCRouter({
       const embedding = embed.body.embeddings[0];
 
       await redis.connect();
-      await create_flat_index(redis, diary.authorId);
+      const res = await redis.ft._list();
+      if (!res.includes("diary")) {
+        await create_flat_index();
+      }
       await load_vector(redis, diary, embedding);
       await redis.quit();
-
-      console.log(`Successfully added index diary:${diary.authorId}`);
 
       return diary;
     }),
