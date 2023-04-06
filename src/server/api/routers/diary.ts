@@ -190,6 +190,15 @@ export const diaryRouter = createTRPCRouter({
       await load_vector(redis, diary, embedding);
       await redis.quit();
 
+      await ctx.prisma.diary.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          isArchived: true,
+        },
+      });
+
       return diary;
     }),
 
