@@ -156,8 +156,44 @@ const DiaryViewPage: NextPage = () => {
       <main className="flex min-h-screen w-full flex-col items-center px-5">
         <Nav
         />
-        <form className="flex w-full flex-col gap-2 max-w-4xl mx-auto">
 
+        <form className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
+          <div className="flex w-full items-center rounded-md bg-base-300 p-4 shadow-md">
+            {!data?.isArchived ? (
+              <button
+                className="btn-primary btn-sm btn"
+                onClick={() => {
+                  if (archive.isLoading) return;
+                  void save().then(async () => {
+                    await archive.mutateAsync({
+                      id: data.id,
+                    });
+                  })
+                }}
+              >
+                <BsArchive />
+                <span className="ml-2">Archive</span>
+              </button>
+            ) : (
+              <button className="btn-disabled btn-sm btn">
+                <BsArchiveFill />
+                <span className="ml-2">Archived</span>
+              </button>
+            )}
+
+            {!data.isArchived ? (
+              <button
+                className="btn-accent btn-sm btn ml-auto"
+                onClick={() => {
+                  void save();
+                }}
+              >
+                Save
+              </button>
+            ) : (
+              <button className="btn-disabled btn-sm btn ml-auto">Save</button>
+            )}
+          </div>
           {updateDiary.error && (
             <div className="text-center text-red-500">
               {updateDiary.error.message}
@@ -165,10 +201,11 @@ const DiaryViewPage: NextPage = () => {
           )}
 
           <div className="text-center text-gray-500">
-            {`Last updated at ${(updatedAt
-              ? updatedAt.toLocaleString()
-              : data?.updatedAt.toLocaleString()) || ""
-              }`}
+            {`Last updated at ${
+              (updatedAt
+                ? updatedAt.toLocaleString()
+                : data?.updatedAt.toLocaleString()) || ""
+            }`}
           </div>
 
           <div className="form-control">

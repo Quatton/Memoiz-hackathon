@@ -3,6 +3,7 @@ import { UserCard } from "./user_card";
 import { GiNotebook } from "react-icons/gi";
 import { BsChatFill } from "react-icons/bs";
 
+
 const Nav = () => {
     return (
         <div className="navbar bg-base-300 top-0 fixed z-50 px-5 shadow-md">
@@ -27,12 +28,11 @@ const Nav = () => {
 
 
 
-            <div className="navbar-end gap-2">
-                <UserCard />
-            </div>
-
-        </div>
-    );
-}
+      <div className="navbar-end gap-2">
+        <UserCard />
+      </div>
+    </div>
+  );
+};
 
 export default Nav;

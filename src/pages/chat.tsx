@@ -21,7 +21,7 @@ const Home: NextPage = () => {
           },
         ] as typeof chat;
 
-        if (newChat.filter((x) => x.type === "received").length === 3) {
+        if (newChat.filter((x) => x.type === "received").length > 3) {
           newChat.push({
             text: "Chat ended. Please refresh the chat by the button below.",
             type: "received",
@@ -41,7 +41,7 @@ const Home: NextPage = () => {
     { text: string; type: "received" | "sent" }[]
   >([
     {
-      text: "Hey! What would you like to ask?",
+      text: "Hey, what can I help?",
       type: "received",
     },
   ]);
@@ -62,20 +62,18 @@ const Home: NextPage = () => {
 
   const handleSentMsg = () => {
     if (query.length === 0) return
-    setChat((x) => {
-      const newChat = [
-        ...x,
-        {
-          text: query,
-          type: "sent",
-        },
-      ] as typeof chat;
 
-      mutation.mutate({
-        chat: newChat,
-      });
+    const newChat = [
+      ...chat,
+      {
+        text: query,
+        type: "sent",
+      },
+    ] as typeof chat;
+    setChat(newChat);
 
-      return newChat;
+    mutation.mutate({
+      chat: newChat,
     });
 
     setQuery("");
@@ -88,7 +86,8 @@ const Home: NextPage = () => {
       <Nav
       />
       <main className="mx-auto flex h-full w-full flex-col items-center justify-center gap-6">
-        <div className="flex w-72 md:w-96 items-center justify-center gap-2 rounded-xl">
+
+        <div className="flex w-72 items-center justify-center gap-2 rounded-xl text-sm sm:text-base md:w-96">
           <MdWarning />
           <span>Chat history is not saved upon closing</span>
         </div>
@@ -183,7 +182,8 @@ const Home: NextPage = () => {
                   mutation.reset();
                   setChat([
                     {
-                      text: "Hey! What would you like to ask",
+
+                      text: "Hey, what can I help?",
                       type: "received",
                     },
                   ]);
