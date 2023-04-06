@@ -159,12 +159,13 @@ export const diaryRouter = createTRPCRouter({
 
       const embedding = embed.body.embeddings[0];
 
-      const res = await redis.ft._list();
       try {
         await redis.connect();
       } catch (error) {
         console.log(error);
       }
+
+      const res = await redis.ft._list();
       if (!res.includes("diary")) {
         await create_flat_index();
       }
