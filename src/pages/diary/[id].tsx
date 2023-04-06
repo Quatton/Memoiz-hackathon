@@ -160,16 +160,18 @@ const DiaryViewPage: NextPage = () => {
             { title: "Write a diary", path: "/diary/create" },
           ]}
         />
-        <form className="flex w-full flex-col gap-2 p-2 max-w-4xl mx-auto">
+        <form className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
           <div className="flex w-full items-center rounded-md bg-base-300 p-4 shadow-md">
             {!data?.isArchived ? (
               <button
-                className="btn-sm btn btn-primary"
+                className="btn-primary btn-sm btn"
                 onClick={() => {
                   if (archive.isLoading) return;
-                  void archive.mutateAsync({
-                    id: data.id,
-                  });
+                  void save().then(async () => {
+                    await archive.mutateAsync({
+                      id: data.id,
+                    });
+                  })
                 }}
               >
                 <BsArchive />
@@ -203,10 +205,11 @@ const DiaryViewPage: NextPage = () => {
           )}
 
           <div className="text-center text-gray-500">
-            {`Last updated at ${(updatedAt
-              ? updatedAt.toLocaleString()
-              : data?.updatedAt.toLocaleString()) || ""
-              }`}
+            {`Last updated at ${
+              (updatedAt
+                ? updatedAt.toLocaleString()
+                : data?.updatedAt.toLocaleString()) || ""
+            }`}
           </div>
 
           <div className="form-control">

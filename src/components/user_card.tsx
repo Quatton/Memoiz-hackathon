@@ -14,9 +14,11 @@ export const UserCard: React.FC = () => {
 
   return (
     <div className="flex flex-row items-center justify-center gap-2">
-      <p>{sessionData && <span>{sessionData.user?.name}</span>}</p>
+      <p className="hidden sm:block">
+        {sessionData && <span>{sessionData.user?.name}</span>}
+      </p>
       <button
-        className="btn-sm btn-accent btn"
+        className="btn-accent btn-sm btn"
         onClick={sessionData ? () => void signOut() : () => void signIn()}
       >
         {sessionData ? "Sign out" : "Sign in"}

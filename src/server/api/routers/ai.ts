@@ -149,7 +149,7 @@ export const aiRouter = createTRPCRouter({
 
       if (response.statusCode === 200) {
         const text = response.body.generations[0]?.text;
-        answer = text ? text.replace("User:", "") : "";
+        answer = text ? text.replace("User:", "").replace("Bot:", "") : "";
       } else {
         answer = "Cannot reach server at the moment. Please try again later.";
       }
