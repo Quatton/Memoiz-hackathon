@@ -23,9 +23,6 @@ const server = z.object({
   DISCORD_CLIENT_SECRET: z.string(),
   COHERE_API_KEY: z.string(),
 
-  UPSTASH_REDIS_URL: z.string().url(),
-  UPSTASH_REDIS_TOKEN: z.string(),
-
   AI21_API_KEY: z.string().min(1),
 });
 
@@ -52,8 +49,6 @@ const processEnv = {
   DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
   COHERE_API_KEY: process.env.COHERE_API_KEY,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
-  UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
-  UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN,
   AI21_API_KEY: process.env.AI21_API_KEY,
 };
 
