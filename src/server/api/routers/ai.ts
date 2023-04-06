@@ -4,7 +4,6 @@ import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 import cohere from "cohere-ai";
 import { redis } from "src/server/redis";
-import { SchemaFieldTypes, VectorAlgorithms } from "redis";
 import { TRPCError } from "@trpc/server";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
@@ -50,11 +49,10 @@ export const aiRouter = createTRPCRouter({
           message: "Cannot reach server at the moment. Please try again later.",
         });
 
-      // connect to redis
-      await redis.connect();
       // get recent diary entries
-      const entries = await knnSearch(redis, 5, ctx.session.user.id, embedding);
 
+      await redis.connect();
+      const entries = await knnSearch(redis, 5, ctx.session.user.id, embedding);
       await redis.quit();
 
       const schema = z.object({
@@ -113,22 +111,9 @@ export const aiRouter = createTRPCRouter({
       return answer;
     }),
 
-  getAIres: protectedProcedure
-    .input(z.object({ prompt: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const response = await cohere.generate({
-        prompt: input.prompt,
-        max_tokens: 50,
-        temperature: 1,
-      });
-      const res = response.body.generations[0];
-      if (res) res.text = `${input.prompt}${res ? res.text : ""}`;
-      return res;
-    }),
-
   classify: protectedProcedure
     .input(z.object({ prompt: z.string() }))
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       console.log(input.prompt);
       const response = await cohere.classify({
         inputs: [input.prompt],
