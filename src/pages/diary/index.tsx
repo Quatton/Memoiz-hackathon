@@ -6,7 +6,9 @@ import { useState } from "react";
 import Container from "src/components/Container";
 import Nav from "src/components/Nav";
 import { BsArchiveFill, BsArchive } from "react-icons/bs";
+import { RiFileAddFill } from 'react-icons/ri'
 import { api } from "src/utils/api";
+import dayjs from "dayjs";
 
 const DiaryPage: NextPage = () => {
   const { data: sessionData } = useSession();
@@ -22,8 +24,8 @@ const DiaryPage: NextPage = () => {
   const mutation = api.diary.createDiary.useMutation({
     onSuccess: async (_) => {
       await refetchDiary();
-      setLoading(false);
-      return 'Dude'
+
+
     },
     onError: (e) => {
       console.error(e);
@@ -38,43 +40,36 @@ const DiaryPage: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Nav
-        breads={[
-          { title: "Home", path: "/" },
-          { title: "Diary", path: "/diary" },
-        ]}
       />
-      <main className="flex min-h-screen w-full flex-col items-center ">
-        <div className="w-full">
-          <table className="table-compact table w-full">
-            <thead>
+      <main className="flex min-h-screen w-full flex-col items-center">
+        <div className="w-full max-w-4xl px-5">
+          <table className="table-compact table w-full shadow-md ">
+            <thead className="">
               <tr>
                 <th></th>
                 <th>Date</th>
                 <th>Title</th>
                 <th className="">
-                  <button
-                    className={`btn-primary btn-sm btn ${loading ? 'loading' : ''}`}
-                    onClick={() => {
-                      if (loading) return;
-                      setLoading(true);
-                      void mutation.mutateAsync({
-                        title: "Untitled",
-                        content: "",
-                      }).then((x) => {
-                        console.log(x)
-                      });
-                    }}
-                  >
-                    {loading ? "Loading..." : "New"}
-                  </button>
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {diaryData?.map((diary) => (
+            <tbody >
+              {diaryData ? <></> : <tr
+                className="hover cursor-pointer animate-pulse"
+              >
+                <th className="">
+                  Loading...
+                </th>
+                <td className="">
+                  Loading...
+                </td>
+                <td className="">Loading...</td>
+                <td className=" truncate">Loading...</td>
+              </tr>}
+              {diaryData?.sort((x, y) => +(new Date(y.createdAt)) - +(new Date(x.createdAt)))?.map((diary) => (
                 <tr
                   key={diary.id}
-                  className="hover cursor-pointer"
+                  className="hover cursor-pointer "
                   onClick={() => {
                     if (loading) return;
                     setLoading(true);
@@ -85,16 +80,33 @@ const DiaryPage: NextPage = () => {
                     {diary.isArchived ? <BsArchiveFill className="text-primary ml-2" /> : <BsArchive className="ml-2" />}
                   </th>
                   <td className="">
-                    {Intl.DateTimeFormat("en-US").format(
-                      new Date(diary.createdAt)
-                    )}
+                    {dayjs(diary.createdAt).format('D MMM YYYY')}
                   </td>
                   <td className="">{diary.title}</td>
                   <td className=" truncate">{diary.content.length > 30 ? `${diary.content.slice(0, 30)}...` : diary.content}</td>
                 </tr>
               ))}
+
             </tbody>
           </table>
+          <div className="w-full flex py-3">
+            <button
+              className={`btn-primary ml-auto btn ${loading ? 'loading' : ''}`}
+              onClick={() => {
+                if (loading) return;
+                setLoading(true);
+                void mutation.mutateAsync({
+                  title: "Untitled",
+                  content: "",
+                }).then((x) => {
+                  void router.push(`/diary/${x.id}`);
+                  setLoading(false);
+                });
+              }}
+            >
+              {loading ? "Loading..." : <><RiFileAddFill size={20} className="mr-2" /> New</>}
+            </button>
+          </div>
         </div>
       </main>
     </Container>

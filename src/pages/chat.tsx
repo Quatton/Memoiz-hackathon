@@ -46,6 +46,7 @@ const Home: NextPage = () => {
     },
   ]);
 
+
   // const talk2api = () => {
   //   setTimeout(() => {
   //     setChat((x) => [
@@ -60,6 +61,8 @@ const Home: NextPage = () => {
   // };
 
   const handleSentMsg = () => {
+    if (query.length === 0) return
+
     const newChat = [
       ...chat,
       {
@@ -67,7 +70,6 @@ const Home: NextPage = () => {
         type: "sent",
       },
     ] as typeof chat;
-
     setChat(newChat);
 
     mutation.mutate({
@@ -82,12 +84,9 @@ const Home: NextPage = () => {
     <Container>
       <Header title="" desc="" />
       <Nav
-        breads={[
-          { title: "Home", path: "/" },
-          { title: "Chat", path: "/chat" },
-        ]}
       />
       <main className="mx-auto flex h-full w-full flex-col items-center justify-center gap-6">
+
         <div className="flex w-72 items-center justify-center gap-2 rounded-xl text-sm sm:text-base md:w-96">
           <MdWarning />
           <span>Chat history is not saved upon closing</span>
@@ -98,9 +97,8 @@ const Home: NextPage = () => {
               return (
                 <div
                   key={idx}
-                  className={`chat ${
-                    x.type === "received" ? "chat-start" : "chat-end"
-                  }`}
+                  className={`chat ${x.type === "received" ? "chat-start" : "chat-end"
+                    }`}
                 >
                   <div className="chat-bubble">{x.text}</div>
                 </div>
@@ -153,8 +151,9 @@ const Home: NextPage = () => {
               <div className={`chat chat-start`}>
                 <div className="chat-bubble">
                   <div className="flex items-center gap-2">
-                    <span className="text-red-500">Error</span>
-                    <MdRefresh
+                    <span className="text-error">Reload</span>
+                    <MdRefresh size={22}
+                      className="text-white hover:text-base hover:cursor-pointer"
                       onClick={() => {
                         mutation.reset();
                         setLoading(true);
@@ -183,6 +182,7 @@ const Home: NextPage = () => {
                   mutation.reset();
                   setChat([
                     {
+
                       text: "Hey, what can I help?",
                       type: "received",
                     },
@@ -197,7 +197,8 @@ const Home: NextPage = () => {
                 onChange={(e) => {
                   setQuery(e.target.value);
                 }}
-                placeholder="Search…"
+
+                placeholder="Type something..."
                 className="input-bordered  input w-full"
               />
               <button

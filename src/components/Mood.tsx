@@ -19,13 +19,12 @@ const Mood = ({ setMood, todayMood }: { todayMood: string | undefined, setMood: 
     const [clicked, setClicked] = useState<string>()
     useEffect(() => { if (clicked === todayMood) setClicked('') }, [clicked, todayMood])
     return (
-        <div className="flex flex-col justify-center items-center gap-3 w-72 md:w-96 rounded-xl bg-white p-2 shadow-md">
-            <h1 className="text-center text-xl font-semibold text-primary">{`Today's Mood`}</h1>
-            <div className="w-full grid grid-cols-2 md:grid-cols-2 text-center justify-center items-center gap-2">
+        <div className="flex flex-col justify-center items-center gap-3 w-72 md:w-96 rounded-xl bg-base-300 p-3 shadow-md">
+            <h1 className="text-center text-2xl font-bold text-base-content my-2">{`Today's Mood`}</h1>
+            <div className="w-full grid grid-cols-2 md:grid-cols-2 text-center justify-center items-center gap-3">
                 {allMoods.map((x) => {
                     return (
                         <button
-
                             className={`btn ${x === clicked ? 'loading' : ''} ${todayMood && x == todayMood ? 'btn-primary' : 'btn-accent'}  btn-sm gap-2`}
                             key={x}
                             onClick={() => {
@@ -33,7 +32,7 @@ const Mood = ({ setMood, todayMood }: { todayMood: string | undefined, setMood: 
                                 setClicked(x)
                             }}
                         >
-                            {x} {emojis[x]}
+                            {x === clicked ? <>SAVING...</> : `${emojis[x]}${x}`}
                         </button>
                     );
                 })}

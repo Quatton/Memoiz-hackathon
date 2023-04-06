@@ -7,7 +7,7 @@ import Header from "src/components/Header";
 import Loading from "src/components/Loading";
 import Nav from "src/components/Nav";
 import { api } from "src/utils/api";
-
+import { FaSave } from 'react-icons/fa'
 const DiaryViewPage: NextPage = () => {
   const router = useRouter();
 
@@ -38,7 +38,8 @@ const DiaryViewPage: NextPage = () => {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-
+  const [submit, setSubmit] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
   const updateDiary = api.diary.updateDiary.useMutation({});
 
   // auto-save
@@ -152,14 +153,10 @@ const DiaryViewPage: NextPage = () => {
   return (
     <Container>
       <Header title="Create a diary" desc="" />
-      <main className="flex min-h-screen w-full flex-col items-center">
+      <main className="flex min-h-screen w-full flex-col items-center px-5">
         <Nav
-          breads={[
-            { title: "Home", path: "/" },
-            { title: "Diary", path: "/diary" },
-            { title: "Write a diary", path: "/diary/create" },
-          ]}
         />
+
         <form className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
           <div className="flex w-full items-center rounded-md bg-base-300 p-4 shadow-md">
             {!data?.isArchived ? (
@@ -197,7 +194,6 @@ const DiaryViewPage: NextPage = () => {
               <button className="btn-disabled btn-sm btn ml-auto">Save</button>
             )}
           </div>
-
           {updateDiary.error && (
             <div className="text-center text-red-500">
               {updateDiary.error.message}
@@ -228,13 +224,48 @@ const DiaryViewPage: NextPage = () => {
             <textarea
               placeholder="Type something here..."
               cols={30}
-              className="textarea-bordered textarea h-96 resize-none"
+              className="textarea-bordered textarea h-96 resize-none bg-base-300"
               value={content}
               onChange={(e) => {
                 setContent(e.target.value);
               }}
               readOnly={data.isArchived}
             ></textarea>
+          </div>
+          <div className="ml-auto">
+            {`${content.replace(/[^\w]/g, ' ').split(" ").filter((x) => x != "").length} word${content.replace(/[^\w]/g, ' ').split(" ").filter((x) => x != "").length > 1 ? 's' : ''}`}
+          </div>
+          <div className="flex justify-end w-full items-center rounded-md gap-3">
+            {data ? (
+              <button
+                className={`btn btn-primary ${isArchiving ? 'loading' : ''}`}
+                onClick={() => {
+                  if (archive.isLoading) return;
+                  setIsArchiving(true)
+                  void archive.mutateAsync({
+                    id: data.id,
+                  });
+                }}
+              >
+                {isArchiving ? <></> : !data.isArchived ? <BsArchive size={20} /> : <BsArchiveFill size={20} />}
+                <span className="ml-2">{isArchiving ? 'Archiving...' : !data.isArchived ? 'Archive' : 'Archived'}</span>
+              </button>
+            ) : <></>}
+
+            <button
+              className={`${submit ? 'loading' : ''} ${!data.isArchived ? 'btn-accent' : 'btn-disabled'} btn flex gap-3`}
+              onClick={() => {
+                if (!data.isArchived) {
+                  setSubmit(true)
+                  void save();
+                }
+
+              }}
+            >
+              {submit ? 'Saving...' : <><FaSave size={20} />Save</>}
+
+            </button>
+
           </div>
         </form>
       </main>

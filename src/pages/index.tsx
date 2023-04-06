@@ -151,7 +151,7 @@ const Home: NextPage = () => {
     <>
       <Header title="" desc="" />
       <Container>
-        <Nav breads={[]} />
+        <Nav />
         <main className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-6">
           <AppName />
           <Mood setMood={handleSelectMood} todayMood={todayMood} />
@@ -169,13 +169,13 @@ const Home: NextPage = () => {
               diary.map((currentDiary, idx) => {
                 return (
                   <div
-                    className="w-72 rounded-xl  bg-white p-3 transition-colors hover:cursor-pointer hover:bg-gray-200 md:w-96"
+                    className="w-72 rounded-xl  bg-base-300 p-3 transition-colors hover:cursor-pointer hover:bg-base-200 md:w-96"
                     key={currentDiary.id}
                     onClick={() => {
                       void router.push(`/diary/${currentDiary.id}`);
                     }}
                   >
-                    <h1 className="font-bold text-lg text-accent">
+                    <h1 className="font-bold text-lg text-base-content">
                       {currentDiary.title}
                     </h1>
                     <p className="text-base-content">{currentDiary.content.slice(0, 50)}{currentDiary.content.length > 50 ? '...' : ''}</p>
@@ -183,10 +183,10 @@ const Home: NextPage = () => {
                 );
               })
             ) : (
-              <div className="flex h-20 w-72 items-center justify-center rounded-xl bg-white p-3 md:w-96">
+              <div className="flex h-20 w-72 items-center justify-center rounded-xl bg-base-300 p-3 md:w-96">
                 <h1 className="flex items-center gap-2 text-error">
-                  <IoMdWarning size={22} /> Oops! No diary on{" "}
-                  {dayjs(selectedDay).format("D MMM YYYY")}
+                  <IoMdWarning size={22} /> Oops! Diary on{" "}
+                  {dayjs(selectedDay).format("D MMM YYYY")} cannot be found.
                 </h1>
               </div>
             )}
