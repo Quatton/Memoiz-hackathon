@@ -17,7 +17,6 @@ model Diary {
   authorId   String
   isArchived Boolean  @default(false)
   author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
   @@index([authorId])
 }
 
@@ -28,7 +27,6 @@ model Mood {
   updatedAt DateTime @updatedAt
   authorId  String
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
   @@index([authorId])
 }
 
@@ -79,4 +77,14 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Mood {
+  id        String   @id
+  mood      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  authorId  String
+
+  @@index([authorId])
 }

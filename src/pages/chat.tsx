@@ -6,19 +6,29 @@ import Nav from "src/components/Nav";
 import { motion } from "framer-motion";
 import { api } from "src/utils/api";
 import { IoIosSend } from "react-icons/io";
+import { MdDeleteSweep, MdRefresh, MdWarning } from "react-icons/md";
 const Home: NextPage = () => {
   const [query, setQuery] = useState<string>("");
-  const [result, setResult] = useState<string>();
   const [loading, setLoading] = useState(false);
   const mutation = api.ai.askQuestion.useMutation({
     onSuccess: (e) => {
-      setChat([
-        ...chat,
-        {
-          text: e,
-          type: "received",
-        },
-      ]);
+      setChat((x) => {
+        const newChat = [
+          ...x,
+          {
+            text: e,
+            type: "received",
+          },
+        ] as typeof chat;
+
+        if (newChat.filter((x) => x.type === "received").length === 3) {
+          newChat.push({
+            text: "Chat ended. Please refresh the chat by the button below.",
+            type: "received",
+          });
+        }
+        return newChat;
+      });
       setLoading(false);
     },
     onError: (e) => {
@@ -36,30 +46,36 @@ const Home: NextPage = () => {
     },
   ]);
 
-  const talk2api = () => {
-    setTimeout(() => {
-      setChat((x) => [
+  // const talk2api = () => {
+  //   setTimeout(() => {
+  //     setChat((x) => [
+  //       ...x,
+  //       {
+  //         text: "はい",
+  //         type: "received",
+  //       },
+  //     ]);
+  //     setLoading(false);
+  //   }, 2000);
+  // };
+
+  const handleSentMsg = () => {
+    setChat((x) => {
+      const newChat = [
         ...x,
         {
-          text: "はい",
-          type: "received",
+          text: query,
+          type: "sent",
         },
-      ]);
-      setLoading(false);
-    }, 2000);
-  };
-  const handleSentMsg = () => {
-    setChat((x) => [
-      ...x,
-      {
-        text: query,
-        type: "sent",
-      },
-    ]);
+      ] as typeof chat;
 
-    mutation.mutate({
-      question: query,
+      mutation.mutate({
+        chat: newChat,
+      });
+
+      return newChat;
     });
+
     setQuery("");
     setLoading(true);
   };
@@ -74,6 +90,10 @@ const Home: NextPage = () => {
         ]}
       />
       <main className="mx-auto flex h-full w-full flex-col items-center justify-center gap-6">
+        <div className="flex w-72 items-center justify-center gap-2 rounded-xl md:w-96">
+          <MdWarning />
+          <span>Chat history is not saved upon closing</span>
+        </div>
         <div>
           <div className="w-72 rounded-t-xl bg-slate-50 px-2 py-16 md:w-96">
             {chat.map((x, idx) => {
@@ -131,6 +151,24 @@ const Home: NextPage = () => {
             ) : (
               <></>
             )}
+            {mutation.isError && (
+              <div className={`chat chat-start`}>
+                <div className="chat-bubble">
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-500">Error</span>
+                    <MdRefresh
+                      onClick={() => {
+                        mutation.reset();
+                        setLoading(true);
+                        mutation.mutate({
+                          chat: chat,
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="-mt-1 w-72 rounded-b-xl bg-white p-2 md:w-96">
             <form
@@ -140,6 +178,21 @@ const Home: NextPage = () => {
                 handleSentMsg();
               }}
             >
+              <button
+                type="button"
+                className="btn-primary btn-square btn gap-2"
+                onClick={() => {
+                  mutation.reset();
+                  setChat([
+                    {
+                      text: "Hey, Jims",
+                      type: "received",
+                    },
+                  ]);
+                }}
+              >
+                <MdDeleteSweep size={22} />
+              </button>
               <input
                 type="text"
                 value={query}
@@ -158,24 +211,6 @@ const Home: NextPage = () => {
             </form>
           </div>
         </div>
-        <form
-          className="form-control"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setChat([
-              ...chat,
-              {
-                text: query,
-                type: "sent",
-              },
-            ]);
-            mutation.mutate({ question: `${query}` });
-            setQuery("");
-          }}
-        ></form>
-
-        <button className="btn-primary btn">Ask me a question</button>
-        <button className="btn-primary btn">Save</button>
       </main>
     </Container>
   );

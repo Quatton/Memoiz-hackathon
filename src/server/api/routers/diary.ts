@@ -15,29 +15,6 @@ import { type Diary } from "@prisma/client";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
 
-const getSegmentedText = async (text: string) => {
-  if (text.length < 30) return [text];
-
-  const url = "https://api.ai21.com/studio/v1/segmentation";
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: [
-      ["Content-Type", "application/json"],
-      ["Accept", "application/json"],
-      ["Authorization", `Bearer ${process.env.AI21_API_KEY || ""}`],
-    ],
-    body: JSON.stringify({
-      source: text,
-      sourceType: "TEXT",
-    }),
-  });
-
-  const res = await response.json();
-
-  return res.segments.map((segment: any) => segment.segmentText);
-};
-
 async function load_vector(
   client: typeof redis,
   diary: Diary,
@@ -182,66 +159,33 @@ export const diaryRouter = createTRPCRouter({
 
       const embedding = embed.body.embeddings[0];
 
-      await redis.connect();
       const res = await redis.ft._list();
+      try {
+        await redis.connect();
+      } catch (error) {
+        console.log(error);
+      }
       if (!res.includes("diary")) {
         await create_flat_index();
       }
       await load_vector(redis, diary, embedding);
-      await redis.quit();
+      try {
+        await redis.quit();
+      } catch (error) {
+        console.log(error);
+      }
+
+      await ctx.prisma.diary.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          isArchived: true,
+        },
+      });
 
       return diary;
     }),
-
-  archiveAllDiary: protectedProcedure.mutation(async ({ ctx }) => {
-    // fetch all unarchived diaries at least 24 hours old
-    const diaries = await ctx.prisma.diary.findMany({
-      where: {
-        authorId: ctx.session.user.id,
-        isArchived: false,
-        createdAt: {
-          lte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    await Promise.all(
-      diaries.map(async (diary) => {
-        const segments = await getSegmentedText(diary.content);
-
-        const embed = await cohere.embed({
-          texts: segments,
-        });
-
-        if (embed.statusCode !== 200) {
-          return null;
-        }
-
-        const embeddings = embed.body.embeddings;
-
-        await ctx.prisma.diary.update({
-          where: {
-            id: diary.id,
-          },
-          data: {
-            isArchived: true,
-            segments: {
-              createMany: {
-                data: embeddings.map((embedding, index) => ({
-                  segment: segments[index] as string,
-                  embedding: embedding.join(","),
-                  authorId: ctx.session.user.id,
-                })),
-              },
-            },
-          },
-        });
-      })
-    );
-  }),
 
   createDiary: protectedProcedure
     .input(
