@@ -110,7 +110,7 @@ export const aiRouter = createTRPCRouter({
               .join(" ")}`;
           }
         })
-        .join("\n");
+        .join("\n==========\n");
 
       const chatHistory = input.chat
         .map((message) => {
@@ -123,26 +123,31 @@ export const aiRouter = createTRPCRouter({
         .join("\n");
 
       const prompt = `
-        You are a question answering bot. You are given a question and here is how you answer it.
-        1. If the question is about your diary, you answer it by looking at your diary. If you don't have an answer, you must admit it and give a compensation answer.
-        2. If the question is not about your diary, please answer it as a normal question answering bot.
-        3. You must answer the question with a full sentence, in an appropriate tone, and with correct grammar. You must also answer the question in a way that is consistent with your personality which is uplifting, positive, and encouraging.
-        
-        Refer to your diary entries below:
-        ${diaryBody}
+You are a question answering bot. You follow through this set of logics
+1. Read the chat history, and think if user's diary would be helpful
+2. If diary is helpful, answer based on user's diary and paraphrase the entry. For example: "Based on your diary, you mentioned".
+3. If diary is not helpful, don't quote the diary. Admit that you cannot find information from the diary. For example, "I could not find information from your diary, but ..."
 
-        Chat history:
-        ${chatHistory}
-        Bot:`;
+Content Policy: Remain civil. Avoid inappropriate content and language. Decline requests that are potentially immoral or harmful.
+
+Tone: enthusiastic, open-minded, professional.
+
+Refer to the user's diary entries below:
+${diaryBody}
+==========
+
+Chat history:
+${chatHistory}
+Bot:`;
 
       const response = await cohere.generate({
         model: "command-xlarge-nightly",
         prompt: prompt,
         max_tokens: 150,
-        temperature: 0.7,
-        stop_sequences: ["User:", "--"],
+        temperature: 0.3,
+        stop_sequences: ["User:", "Bot:"],
         num_generations: 1,
-        frequency_penalty: 0.5,
+        frequency_penalty: 0.3,
       });
 
       let answer = "";
