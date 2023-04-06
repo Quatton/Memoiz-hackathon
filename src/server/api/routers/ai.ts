@@ -67,6 +67,7 @@ export const aiRouter = createTRPCRouter({
 
       const embed = await cohere.embed({
         texts: [chatHistory],
+        truncate: "START",
       });
 
       const embedding = embed.body.embeddings[0];
