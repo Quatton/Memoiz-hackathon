@@ -17,6 +17,12 @@ pscale org switch wahni
 pscale connect hackathon dev
 ```
 
+or
+
+```
+yarn pscale
+```
+
 Put `mysql://localhost:3306/hackathon` in the `.env` file
 
 Then,
@@ -37,3 +43,7 @@ Please set up your database and put the connection string in the `.env` file
 
 Please put in Discord OAuth2 credentials in the `.env` file
 And set up `NEXTAUTH_SECRET` according to the `.env.example` file.
+
+#
+
+`docker run -p 6379:6379 -it redis/redis-stack-server:latest`

@@ -33,6 +33,29 @@ const Home: NextPage = () => {
     },
   });
 
+  const mutationMood = api.mood.addMood.useMutation({
+    onSuccess: async (_) => {
+      await refetchMood();
+      setLoading(false);
+    },
+    onError: (e) => {
+      console.error(e);
+    },
+  });
+
+  const updateMood = api.mood.updateMood.useMutation({
+    onSuccess: async (_) => {
+      await refetchMood();
+      setLoading(false);
+    },
+    onError: (e) => {
+      console.error(e);
+    },
+  });
+
+  const [todayMood, setTodayMood] = useState<string>()
+
+
 
   const { data: sessionData, status: sessionStatus } = useSession();
 
@@ -42,24 +65,52 @@ const Home: NextPage = () => {
       { enabled: sessionData?.user !== undefined }
     );
 
+
+  const { data: moodData, refetch: refetchMood } =
+    api.mood.getMoods.useQuery(
+      undefined, // no input
+      { enabled: sessionData?.user !== undefined }
+    );
+
+  useEffect(() => {
+    if (moodData !== undefined) {
+      setMoods(moodData.map((data) => {
+        if (dayjs().isSame(dayjs(data.createdAt), 'day')) {
+          setTodayMood(data.value)
+        }
+        return {
+          date: data.createdAt,
+          mood: data.value
+        }
+      }))
+    }
+  }, [moodData])
+
+
   const [selectedDay, setSelectedDay] = useState<Date>();
   const [diary, setDiary] = useState<
     { title: string; content: string; id: string }[]
   >([]);
-  const [moods, setMoods] = useState<{ [key: string]: "happy" | "sad" }>({
-    "2023/04/02": "happy",
-    "2023/04/01": "sad",
-  });
+
+
+  const [moods, setMoods] = useState<{ date: Date, mood: string }[]>([]);
+
+  const handleSelectMood = (x: string) => {
+
+    const founded = moodData?.find((x) => dayjs().isSame(dayjs(x.createdAt), "day"))
+
+    if (founded !== undefined) {
+      void updateMood.mutateAsync({ id: founded.id, value: x })
+      return
+    }
+    void mutationMood.mutateAsync({ value: x })
+    return
+  }
   useEffect(() => {
     if (selectedDay && diaryData) {
       setDiary(
         diaryData
           .filter((data) => {
-            console.log(dayjs(selectedDay));
-            console.log(dayjs(data.createdAt));
-            console.log(
-              dayjs(selectedDay).isSame(dayjs(data.createdAt), "day")
-            );
             return dayjs(selectedDay).isSame(dayjs(data.createdAt), "day");
           })
           .map((data) => {
@@ -73,9 +124,6 @@ const Home: NextPage = () => {
     }
   }, [selectedDay, diaryData]);
 
-  useEffect(() => {
-    console.log(diaryData);
-  }, [diaryData]);
 
 
   const handleCreateDiary = () => {
@@ -96,13 +144,7 @@ const Home: NextPage = () => {
   } else if (sessionStatus === "unauthenticated") {
     return <ToSignIn />;
   }
-  const setMood = (x: "happy" | "sad") => {
-    setMoods((temp) => {
-      temp[dayjs().format("YYYY/MM/DD")] = x;
-      return temp;
-    });
-    return;
-  };
+
 
 
   return (
@@ -112,7 +154,7 @@ const Home: NextPage = () => {
         <Nav breads={[]} />
         <main className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-6">
           <AppName />
-          <Mood setMood={setMood} />
+          <Mood setMood={handleSelectMood} todayMood={todayMood} />
           <Calendar
             moods={moods}
             onClick={(val) => {
@@ -122,7 +164,7 @@ const Home: NextPage = () => {
           />
 
           <div className="flex flex-col justify-center items-center gap-3">
-            {dayjs(selectedDay).format("D MMM YYYY")}
+            <h1 className="text-xl">{dayjs(selectedDay).format("D MMM YYYY")}</h1>
             {diary && diary.length > 0 ? (
               diary.map((currentDiary, idx) => {
                 return (
