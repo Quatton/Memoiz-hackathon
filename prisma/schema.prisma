@@ -59,6 +59,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   diaries       Diary[]
+  moods         Mood[]
 }
 
 model VerificationToken {
@@ -70,11 +71,12 @@ model VerificationToken {
 }
 
 model Mood {
-  id        String   @id
-  mood      String
+  id        String   @id @default(cuid())
+  value     String
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
 }
