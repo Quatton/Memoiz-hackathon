@@ -41,7 +41,7 @@ const DiaryPage: NextPage = () => {
       </Head>
       <Nav
       />
-      <main className="flex min-h-screen w-full flex-col items-center">
+      <main className="flex w-full flex-col items-center">
         <div className="w-full max-w-4xl px-5">
           <table className="table-compact table w-full shadow-md ">
             <thead className="">

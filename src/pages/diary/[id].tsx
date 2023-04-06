@@ -153,7 +153,7 @@ const DiaryViewPage: NextPage = () => {
   return (
     <Container>
       <Header title="Create a diary" desc="" />
-      <main className="flex min-h-screen w-full flex-col items-center px-5">
+      <main className="flex w-full flex-col items-center px-5">
         <Nav
         />
 

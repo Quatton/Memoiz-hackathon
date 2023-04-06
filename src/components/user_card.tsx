@@ -13,7 +13,7 @@ export const UserCard: React.FC = () => {
   const { data: sessionData } = useSession();
 
   return (
-    <div className="flex flex-row items-center justify-center gap-2">
+    <div className="flex flex-row items-center justify-center gap-2 mr-3 md:mr-0">
       <p className="hidden sm:block">
         {sessionData && <span>{sessionData.user?.name}</span>}
       </p>

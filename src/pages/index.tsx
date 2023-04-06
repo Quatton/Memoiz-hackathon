@@ -152,7 +152,7 @@ const Home: NextPage = () => {
       <Header title="" desc="" />
       <Container>
         <Nav />
-        <main className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-6">
+        <main className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-6 pb-12">
           <AppName />
           <Mood setMood={handleSelectMood} todayMood={todayMood} />
           <Calendar

@@ -6,10 +6,29 @@ import { BsChatFill } from "react-icons/bs";
 
 const Nav = () => {
     return (
-        <div className="navbar bg-base-300 top-0 fixed z-50 px-5 shadow-md">
+        <div className="navbar bg-base-300 top-0 fixed z-50 md:px-5 shadow-md">
             <div className="navbar-start">
-                <Link href={'/'} className="btn btn-ghost normal-case text-3xl pb-1 mr-4 font-logo bg-gradient-to-r bg-clip-text text-transparent from-purple-500 to-pink-500 text">Memoiz</Link>
-                <div className="flex-none">
+                <div className="dropdown md:hidden">
+                    <label tabIndex={0} className="btn btn-ghost btn-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+                    </label>
+                    <ul tabIndex={0} className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-300 rounded-box">
+                        <li>
+                            <Link href={'/chat'}>
+                                Chat <BsChatFill size={22} />
+                            </Link>
+                        </li>
+                        <li>
+                            <Link href={'/diary'}>
+                                Diary <GiNotebook size={24} />
+                            </Link>
+                        </li>
+                    </ul>
+                </div>
+
+                <Link href={'/'} className="btn btn-ghost normal-case text-3xl pb-1 mr-4 font-logo  "><span className="bg-gradient-to-r bg-clip-text text-transparent from-purple-500 to-pink-500">Memoiz</span></Link>
+
+                <div className="hidden md:block flex-none">
                     <ul className="menu menu-horizontal px-1">
                         <li>
                             <Link href={'/chat'}>
@@ -28,11 +47,11 @@ const Nav = () => {
 
 
 
-      <div className="navbar-end gap-2">
-        <UserCard />
-      </div>
-    </div>
-  );
+            <div className="navbar-end gap-2">
+                <UserCard />
+            </div>
+        </div>
+    );
 };
 
 export default Nav;

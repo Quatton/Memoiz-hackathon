@@ -1,9 +1,7 @@
-import { useRouter } from "next/router";
 import { type PropsWithChildren } from "react";
 const Container = ({ children }: PropsWithChildren) => {
-    const router = useRouter();
     return (
-        <div className="flex min-h-screen flex-col items-center justify-center pt-32 pb-16">
+        <div className="flex min-h-screen flex-col items-center justify-start pt-24">
             {children}
         </div>
     );

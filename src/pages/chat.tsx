@@ -82,11 +82,9 @@ const Home: NextPage = () => {
 
   return (
     <Container>
-      <Header title="" desc="" />
-      <Nav
-      />
-      <main className="mx-auto flex h-full w-full flex-col items-center justify-center gap-6">
-
+      <Header title="Chat" desc="" />
+      <Nav />
+      <main className="h-full flex flex-col justify-center items-center flex-1 pb-16 pt-12">
         <div className="flex w-72 items-center justify-center gap-2 rounded-xl text-sm sm:text-base md:w-96">
           <MdWarning />
           <span>Chat history is not saved upon closing</span>
