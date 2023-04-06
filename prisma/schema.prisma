@@ -8,29 +8,15 @@ datasource db {
   relationMode = "prisma"
 }
 
-model Segment {
-  id         String  @id @default(cuid())
-  segment    String  @db.Text
-  authorId   String
-  diaryId    String
-  embeddings String? @db.Text
-  author     User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  diary      Diary   @relation(fields: [diaryId], references: [id], onDelete: Cascade)
-
-  @@index([authorId])
-  @@index([diaryId])
-}
-
 model Diary {
-  id         String    @id @default(cuid())
+  id         String   @id @default(cuid())
   title      String
-  content    String    @db.Text
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   authorId   String
-  isArchived Boolean   @default(false)
-  segments   Segment[]
-  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  isArchived Boolean  @default(false)
+  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
 }
@@ -73,7 +59,6 @@ model User {
   accounts      Account[]
   sessions      Session[]
   diaries       Diary[]
-  segments      Segment[]
 }
 
 model VerificationToken {
@@ -82,4 +67,14 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Mood {
+  id        String   @id
+  mood      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  authorId  String
+
+  @@index([authorId])
 }
