@@ -160,13 +160,20 @@ export const diaryRouter = createTRPCRouter({
       const embedding = embed.body.embeddings[0];
 
       const res = await redis.ft._list();
-
-      await redis.connect();
+      try {
+        await redis.connect();
+      } catch (error) {
+        console.log(error);
+      }
       if (!res.includes("diary")) {
         await create_flat_index();
       }
       await load_vector(redis, diary, embedding);
-      await redis.quit();
+      try {
+        await redis.quit();
+      } catch (error) {
+        console.log(error);
+      }
 
       await ctx.prisma.diary.update({
         where: {
