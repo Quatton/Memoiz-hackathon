@@ -34,11 +34,38 @@ async function knnSearch(
 
 export const aiRouter = createTRPCRouter({
   askQuestion: protectedProcedure
-    .input(z.object({ question: z.string().min(1) }))
+    .input(
+      z.object({
+        chat: z.array(
+          z.object({
+            text: z.string(),
+            // type is either sent or received
+            type: z.literal("received").or(z.literal("sent")),
+          })
+        ),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
+      // get last message
+      const lastMessage = input.chat.at(-1);
+
+      if (!lastMessage || lastMessage.type === "received")
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You need to send a message first",
+        });
+
+      if (
+        input.chat.filter((message) => message.type === "received").length > 3
+      )
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You can only exchange 3 messages at a time",
+        });
       // embed the question
+
       const embed = await cohere.embed({
-        texts: [input.question],
+        texts: [lastMessage.text],
       });
 
       const embedding = embed.body.embeddings[0];
@@ -51,9 +78,18 @@ export const aiRouter = createTRPCRouter({
 
       // get recent diary entries
 
-      await redis.connect();
-      const entries = await knnSearch(redis, 5, ctx.session.user.id, embedding);
-      await redis.quit();
+      try {
+        await redis.connect();
+      } catch (error) {
+        console.log(error);
+      }
+      const entries = await knnSearch(redis, 3, ctx.session.user.id, embedding);
+
+      try {
+        await redis.quit();
+      } catch (error) {
+        console.log(error);
+      }
 
       const schema = z.object({
         title: z.string(),
@@ -69,9 +105,20 @@ export const aiRouter = createTRPCRouter({
               new Date(parseInt(parsed.data.createdAt))
             )},${parsed.data.title},${parsed.data.content
               .split("\n")
+              .map((line) => line.trim())
+              .filter((line) => line.length > 0)
               .join(" ")}`;
           }
-          console.log(value);
+        })
+        .join("\n");
+
+      const chatHistory = input.chat
+        .map((message) => {
+          if (message.type === "sent") {
+            return `User: ${message.text}`;
+          } else {
+            return `Bot: ${message.text}`;
+          }
         })
         .join("\n");
 
@@ -84,17 +131,16 @@ export const aiRouter = createTRPCRouter({
         Refer to your diary entries below:
         ${diaryBody}
 
-        Question: ${input.question}
-        Answer:`;
-
-      console.log(prompt);
+        Chat history:
+        ${chatHistory}
+        Bot:`;
 
       const response = await cohere.generate({
         model: "command-xlarge-nightly",
         prompt: prompt,
         max_tokens: 150,
         temperature: 0.7,
-        stop_sequences: ["Question", "--"],
+        stop_sequences: ["User:", "--"],
         num_generations: 1,
         frequency_penalty: 0.5,
       });
@@ -103,7 +149,7 @@ export const aiRouter = createTRPCRouter({
 
       if (response.statusCode === 200) {
         const text = response.body.generations[0]?.text;
-        answer = text ? text.replace("Answer:", "") : "";
+        answer = text ? text.replace("User:", "") : "";
       } else {
         answer = "Cannot reach server at the moment. Please try again later.";
       }
