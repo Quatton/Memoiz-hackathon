@@ -158,42 +158,7 @@ const DiaryViewPage: NextPage = () => {
         />
 
         <form className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
-          <div className="flex w-full items-center rounded-md bg-base-300 p-4 shadow-md">
-            {!data?.isArchived ? (
-              <button
-                className="btn-primary btn-sm btn"
-                onClick={() => {
-                  if (archive.isLoading) return;
-                  void save().then(async () => {
-                    await archive.mutateAsync({
-                      id: data.id,
-                    });
-                  })
-                }}
-              >
-                <BsArchive />
-                <span className="ml-2">Archive</span>
-              </button>
-            ) : (
-              <button className="btn-disabled btn-sm btn">
-                <BsArchiveFill />
-                <span className="ml-2">Archived</span>
-              </button>
-            )}
 
-            {!data.isArchived ? (
-              <button
-                className="btn-accent btn-sm btn ml-auto"
-                onClick={() => {
-                  void save();
-                }}
-              >
-                Save
-              </button>
-            ) : (
-              <button className="btn-disabled btn-sm btn ml-auto">Save</button>
-            )}
-          </div>
           {updateDiary.error && (
             <div className="text-center text-red-500">
               {updateDiary.error.message}
@@ -201,11 +166,10 @@ const DiaryViewPage: NextPage = () => {
           )}
 
           <div className="text-center text-gray-500">
-            {`Last updated at ${
-              (updatedAt
-                ? updatedAt.toLocaleString()
-                : data?.updatedAt.toLocaleString()) || ""
-            }`}
+            {`Last updated at ${(updatedAt
+              ? updatedAt.toLocaleString()
+              : data?.updatedAt.toLocaleString()) || ""
+              }`}
           </div>
 
           <div className="form-control">
@@ -222,6 +186,7 @@ const DiaryViewPage: NextPage = () => {
           </div>
           <div className="form-control">
             <textarea
+              disabled={data.isArchived}
               placeholder="Type something here..."
               cols={30}
               className="textarea-bordered textarea h-96 resize-none bg-base-300"
@@ -238,7 +203,7 @@ const DiaryViewPage: NextPage = () => {
           <div className="flex justify-end w-full items-center rounded-md gap-3">
             {data ? (
               <button
-                className={`btn btn-primary ${isArchiving ? 'loading' : ''}`}
+                className={`btn ${!data.isArchived ? 'btn-accent' : 'btn-disabled'} ${isArchiving ? 'loading' : ''}`}
                 onClick={() => {
                   if (archive.isLoading) return;
                   setIsArchiving(true)
