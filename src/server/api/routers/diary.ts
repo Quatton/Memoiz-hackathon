@@ -9,7 +9,9 @@ import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 import cohere from "cohere-ai";
 import { TRPCError } from "@trpc/server";
-import { TextSegmentationRes } from "src/server/ai21";
+import { redis } from "src/server/redis";
+import { SchemaFieldTypes, VectorAlgorithms } from "redis";
+import { type Diary } from "@prisma/client";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
 
@@ -35,6 +37,68 @@ const getSegmentedText = async (text: string) => {
 
   return res.segments.map((segment: any) => segment.segmentText);
 };
+
+async function load_vector(
+  client: typeof redis,
+  diary: Diary,
+  vector: number[]
+) {
+  const key = `diary:${diary.id}`;
+
+  const diary_data = {
+    title: diary.title,
+    content: diary.content,
+    createdAt: diary.createdAt.getTime(),
+    embedding: vector,
+    authorId: diary.authorId,
+  };
+
+  await client.json.set(key, "$", diary_data);
+}
+
+async function create_flat_index(
+  vector_dimension = 4096,
+  distance_metric: "L2" | "IP" | "COSINE" = "L2"
+) {
+  // const number_of_vectors = parseInt(
+  //   (await client.get(`diary:${authorId}:count`)) || "0"
+  // );
+  await redis.ft.create(
+    `diary`,
+    {
+      "$.embedding": {
+        type: SchemaFieldTypes.VECTOR,
+        TYPE: "FLOAT32",
+        ALGORITHM: VectorAlgorithms.FLAT,
+        DIM: vector_dimension,
+        DISTANCE_METRIC: distance_metric,
+        AS: "embedding",
+        // INITIAL_CAP: number_of_vectors,
+        // BLOCK_SIZE: number_of_vectors,
+      },
+      "$.authorId": {
+        type: SchemaFieldTypes.TEXT,
+        AS: "authorId",
+      },
+      "$.title": {
+        type: SchemaFieldTypes.TEXT,
+        AS: "title",
+      },
+      "$.content": {
+        type: SchemaFieldTypes.TEXT,
+        AS: "content",
+      },
+      "$.createdAt": {
+        type: SchemaFieldTypes.NUMERIC,
+        AS: "createdAt",
+      },
+    },
+    {
+      ON: "JSON",
+      PREFIX: "diary",
+    }
+  );
+}
 
 export const diaryRouter = createTRPCRouter({
   getMyDiaries: protectedProcedure.query(({ ctx }) => {
@@ -103,41 +167,28 @@ export const diaryRouter = createTRPCRouter({
         });
       }
 
-      const segments = await getSegmentedText(diary.content);
+      // const segments = await getSegmentedText(diary.content);
 
       const embed = await cohere.embed({
-        texts: segments,
+        texts: [diary.content],
       });
 
-      if (embed.statusCode !== 200) {
+      if (embed.statusCode !== 200 || !embed.body.embeddings[0]) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Cannot reach server at the moment. Please try again later.",
         });
       }
 
-      const embeddingss = embed.body.embeddings;
+      const embedding = embed.body.embeddings[0];
 
-      await ctx.prisma.diary.update({
-        where: {
-          id: diary.id,
-        },
-        data: {
-          isArchived: true,
-          segments: {
-            createMany: {
-              data: embeddingss.map((embeddings, index) => ({
-                segment: segments[index] as string,
-                embeddings: embeddings.join(","),
-                authorId: ctx.session.user.id,
-              })),
-            },
-          },
-        },
-        include: {
-          segments: true,
-        },
-      });
+      await redis.connect();
+      const res = await redis.ft._list();
+      if (!res.includes("diary")) {
+        await create_flat_index();
+      }
+      await load_vector(redis, diary, embedding);
+      await redis.quit();
 
       return diary;
     }),
