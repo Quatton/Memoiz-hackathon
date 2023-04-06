@@ -46,15 +46,6 @@ export const aiRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // get last message
-      const lastMessage = input.chat.at(-1);
-
-      if (!lastMessage || lastMessage.type === "received")
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You need to send a message first",
-        });
-
       if (
         input.chat.filter((message) => message.type === "received").length > 3
       )
@@ -64,8 +55,18 @@ export const aiRouter = createTRPCRouter({
         });
       // embed the question
 
+      const chatHistory = input.chat
+        .map((message) => {
+          if (message.type === "sent") {
+            return `User: ${message.text}`;
+          } else {
+            return `Bot: ${message.text}`;
+          }
+        })
+        .join("\n");
+
       const embed = await cohere.embed({
-        texts: [lastMessage.text],
+        texts: [chatHistory],
       });
 
       const embedding = embed.body.embeddings[0];
@@ -111,16 +112,6 @@ export const aiRouter = createTRPCRouter({
           }
         })
         .join("\n==========\n");
-
-      const chatHistory = input.chat
-        .map((message) => {
-          if (message.type === "sent") {
-            return `User: ${message.text}`;
-          } else {
-            return `Bot: ${message.text}`;
-          }
-        })
-        .join("\n");
 
       const prompt = `
 You are a question answering bot. You follow through this set of logics
