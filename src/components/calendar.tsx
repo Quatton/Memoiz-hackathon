@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
 import dayjs from 'dayjs';
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
-import { colors } from "./Mood";
+import { colors, allMoods } from "./Mood";
+
 type Dayjs = dayjs.Dayjs
 const Calendar = ({ onClick, moods, selecting }: {
-    onClick: (day: Date) => void, moods: { [key: string]: "happy" | "sad" }, selecting: (Date | undefined)
+    onClick: (day: Date) => void, moods: { date: Date, mood: string }[], selecting: (Date | undefined)
 }) => {
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
 
@@ -79,11 +80,15 @@ const Calendar = ({ onClick, moods, selecting }: {
                                 let bgColor = ""
                                 const isSameMonth = selectedDate.clone().toDate().getMonth() !== day.getMonth()
 
-                                const dayStr = dayjs(day).format("YYYY/MM/DD")
                                 const isToday = dayjs(currentDay).isSame(day, "date")
-                                if (moods[dayStr] != undefined) {
-                                    if (moods[dayStr] === 'happy') bgColor = colors['happy']
-                                    else if (moods[dayStr] === 'sad') bgColor = colors['sad']
+                                const founded = moods.find((x) => dayjs(x.date).isSame(day, "date"))
+                                if (founded) {
+                                    allMoods.forEach((mood) => {
+                                        if (mood == founded.mood) {
+                                            bgColor = colors[mood]
+                                        }
+                                    })
+
                                 }
 
                                 return (
@@ -106,13 +111,13 @@ const Calendar = ({ onClick, moods, selecting }: {
                     ))
                 }
             </div >
-            <div className="flex gap-4">
-                <div className="flex items-center gap-2">
-                    <div className={`w-4 h-4 rounded-md ${colors['happy']}`}></div><div>Happy</div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className={`w-4 h-4 rounded-md ${colors['sad']}`}></div><div>Sad</div>
-                </div>
+            <div className="flex gap-3 flex-wrap w-72 md:w-96">
+                {allMoods.map((mood) => {
+                    return <div className="flex items-center gap-2" key={mood}>
+                        <div className={`w-4 h-4 rounded-md ${colors[mood]}`}></div><div>{mood}</div>
+                    </div>
+                })}
+
 
             </div>
         </div>
