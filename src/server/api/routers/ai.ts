@@ -3,32 +3,79 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 import cohere from "cohere-ai";
+import { redis } from "src/server/redis";
+import { SchemaFieldTypes, VectorAlgorithms } from "redis";
+import { TRPCError } from "@trpc/server";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
+
+async function knnSearch(
+  client: typeof redis,
+  topK: number,
+  authorId: string,
+  query_vector: number[]
+) {
+  const query_vector_bytes = Buffer.from(query_vector);
+  const query = `*=>[KNN ${topK} @embedding $query_vec AS vector_score]`;
+  const res = await client.ft.search(`diary:${authorId}`, query, {
+    DIALECT: 2,
+    SORTBY: "vector_score",
+    PARAMS: {
+      query_vec: query_vector_bytes,
+    },
+    LIMIT: {
+      from: 0,
+      size: topK,
+    },
+    RETURN: ["id", "title", "content", "created_at", "embedding"],
+  });
+
+  return res;
+}
 
 export const aiRouter = createTRPCRouter({
   askQuestion: protectedProcedure
     .input(z.object({ question: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
-      // get recent diary entries
-      const entries = await ctx.prisma.diary.findMany({
-        where: {
-          authorId: ctx.session.user.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 5,
+      // embed the question
+      const embed = await cohere.embed({
+        texts: [input.question],
       });
 
-      const diaryBody = entries
-        .map(
-          (e) =>
-            `${Intl.DateTimeFormat("en-US").format(e.createdAt)},${e.title},${
-              e.content
-            }`
-        )
+      const embedding = embed.body.embeddings[0];
+
+      if (embed.statusCode !== 200 || !embedding)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Cannot reach server at the moment. Please try again later.",
+        });
+
+      // connect to redis
+      await redis.connect();
+      // get recent diary entries
+      const entries = await knnSearch(redis, 5, ctx.session.user.id, embedding);
+
+      await redis.quit();
+
+      console.log(entries.documents);
+
+      // document schema
+      const schema = z.object({
+        title: z.string(),
+        content: z.string(),
+        createdAt: z.number(),
+      });
+
+      const diaryBody = entries.documents
+        .map(({ value }) => {
+          const parsed = schema.safeParse(value);
+          if (parsed.success) {
+            return `Intl.DateTimeFormat("en-US").format(new Date(${parsed.data.createdAt})),${parsed.data.title},${parsed.data.content}`;
+          }
+        })
         .join("\n");
+
+      console.log(diaryBody);
 
       const prompt = `
         You are a question answering bot. You are given a question and here is how you answer it.
@@ -37,14 +84,13 @@ export const aiRouter = createTRPCRouter({
         3. You must answer the question with a full sentence, in an appropriate tone, and with correct grammar. You must also answer the question in a way that is consistent with your personality which is uplifting, positive, and encouraging.
         
         Diary:
-        Date,Title,Content
         ${diaryBody}
 
         Question: ${input.question}
         Answer:`;
 
       const response = await cohere.generate({
-        model: "6bb104cd-75d6-4898-93bb-a0618bc12434-ft",
+        model: "command-xlarge-nightly",
         prompt: prompt,
         max_tokens: 150,
         temperature: 0.7,
