@@ -60,20 +60,18 @@ const Home: NextPage = () => {
   // };
 
   const handleSentMsg = () => {
-    setChat((x) => {
-      const newChat = [
-        ...x,
-        {
-          text: query,
-          type: "sent",
-        },
-      ] as typeof chat;
+    const newChat = [
+      ...chat,
+      {
+        text: query,
+        type: "sent",
+      },
+    ] as typeof chat;
 
-      mutation.mutate({
-        chat: newChat,
-      });
+    setChat(newChat);
 
-      return newChat;
+    mutation.mutate({
+      chat: newChat,
     });
 
     setQuery("");
@@ -185,7 +183,7 @@ const Home: NextPage = () => {
                   mutation.reset();
                   setChat([
                     {
-                      text: "Hey, Jims",
+                      text: "Hey, what can I help?",
                       type: "received",
                     },
                   ]);
