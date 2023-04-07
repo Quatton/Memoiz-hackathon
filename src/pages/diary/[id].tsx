@@ -177,7 +177,7 @@ const DiaryViewPage: NextPage = () => {
               }`}
           </div>
 
-          <div className="">
+          <div className="form-control">
             <input
               type="text"
               placeholder="Title"
