@@ -164,11 +164,10 @@ const DiaryViewPage: NextPage = () => {
           )}
 
           <div className="text-center text-gray-500">
-            {`Last updated at ${
-              (updatedAt
-                ? updatedAt.toLocaleString()
-                : data?.updatedAt.toLocaleString()) || ""
-            }`}
+            {`Last updated at ${(updatedAt
+              ? updatedAt.toLocaleString()
+              : data?.updatedAt.toLocaleString()) || ""
+              }`}
           </div>
 
           <div className="form-control">
@@ -197,26 +196,24 @@ const DiaryViewPage: NextPage = () => {
             ></textarea>
           </div>
           <div className="ml-auto">
-            {`${
-              content
-                .replace(/[^\w]/g, " ")
-                .split(" ")
-                .filter((x) => x != "").length
-            } word${
-              content
+            {`${content
+              .replace(/[^\w]/g, " ")
+              .split(" ")
+              .filter((x) => x != "").length
+              } word${content
                 .replace(/[^\w]/g, " ")
                 .split(" ")
                 .filter((x) => x != "").length > 1
                 ? "s"
                 : ""
-            }`}
+              }`}
           </div>
           <div className="flex w-full items-center justify-end gap-3 rounded-md">
             {data ? (
               <button
-                className={`btn ${
-                  !data.isArchived ? "btn-accent" : "btn-disabled"
-                } ${isArchiving ? "loading" : ""}`}
+                type="button"
+                className={`btn ${!data.isArchived ? "btn-accent" : "btn-disabled"
+                  } ${isArchiving ? "loading" : ""}`}
                 onClick={() => {
                   if (archive.isLoading) return;
                   setIsArchiving(true);
@@ -238,8 +235,8 @@ const DiaryViewPage: NextPage = () => {
                   {isArchiving
                     ? "Archiving..."
                     : !data.isArchived
-                    ? "Archive"
-                    : "Archived"}
+                      ? "Archive"
+                      : "Archived"}
                 </span>
               </button>
             ) : (
@@ -247,9 +244,9 @@ const DiaryViewPage: NextPage = () => {
             )}
 
             <button
-              className={`${submit ? "loading" : ""} ${
-                !data.isArchived ? "btn-accent" : "btn-disabled"
-              } btn flex gap-3`}
+              type="button"
+              className={`${submit ? "loading" : ""} ${!data.isArchived ? "btn-accent" : "btn-disabled"
+                } btn flex gap-3`}
               onClick={() => {
                 if (!data.isArchived) {
                   setSubmit(true);
