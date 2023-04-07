@@ -9,6 +9,8 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { env } from "src/env.mjs";
 import { prisma } from "src/server/db";
 
+import GoogleProvider from "next-auth/providers/google";
+
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
  * object and keep type safety.
@@ -50,6 +52,10 @@ export const authOptions: NextAuthOptions = {
     DiscordProvider({
       clientId: env.DISCORD_CLIENT_ID,
       clientSecret: env.DISCORD_CLIENT_SECRET,
+    }),
+    GoogleProvider({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
     }),
     /**
      * ...add more providers here.

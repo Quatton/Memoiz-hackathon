@@ -20,6 +20,8 @@ const server = z.object({
   ),
   UPSTASH_REDIS_URL: z.string().min(1),
   UPSTASH_REDIS_TOKEN: z.string().min(1),
+  GOOGLE_CLIENT_ID: z.string().min(1),
+  GOOGLE_CLIENT_SECRET: z.string().min(1),
   // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
   DISCORD_CLIENT_ID: z.string().min(1),
   DISCORD_CLIENT_SECRET: z.string().min(1),
@@ -50,6 +52,8 @@ const processEnv = {
   COHERE_API_KEY: process.env.COHERE_API_KEY,
   UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
   UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 
