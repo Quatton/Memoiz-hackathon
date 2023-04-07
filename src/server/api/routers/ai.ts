@@ -115,14 +115,16 @@ export const aiRouter = createTRPCRouter({
         .join("\n==========\n");
 
       const prompt = `
-You are a question answering bot. You follow through this set of logics
-1. Read the chat history, and think if user's diary would be helpful
-2. If diary is helpful, answer based on user's diary and paraphrase the entry. For example: "Based on your diary, you mentioned".
-3. If diary is not helpful, don't quote the diary. Admit that you cannot find information from the diary. For example, "I could not find information from your diary, but ..."
+You are a personal second brain. Follow through this set of instructions.
+1. Read through the chat history, refer your answer to user's diary entries.
+2. If diary is helpful, paraphrase the diary and answer accurately.
+3. If you have to make a prediction or recommendation, try your best to deduce from the diary entries.
+4. If diary is not helpful, don't quote the diary. Admit that you cannot find information from the diary and give an alternative answer.
 
-Content Policy: Remain civil. Avoid inappropriate content and language. Decline requests that are potentially immoral or harmful.
-
+Content Policy: Always insist on your answer if you have a concrete evidence. Otherwise, apologize for being wrong. Remain civil. Avoid inappropriate content and language. Decline requests that are potentially immoral or harmful.
+Language: Always talk the same language as user's input.
 Tone: enthusiastic, open-minded, professional.
+Style: concise, hedging, logical.
 
 Refer to the user's diary entries below:
 ${diaryBody}
@@ -134,12 +136,13 @@ Bot:`;
 
       const response = await cohere.generate({
         model: "command-xlarge-nightly",
-        prompt: prompt,
+        prompt: prompt.trim(),
         max_tokens: 150,
-        temperature: 0.3,
+        temperature: 0.7,
         stop_sequences: ["User:", "Bot:"],
         num_generations: 1,
         frequency_penalty: 0.3,
+        truncate: "START",
       });
 
       let answer = "";
