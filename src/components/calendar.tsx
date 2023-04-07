@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
-import { colors, allMoods } from "./Mood";
+import { colorActives, allMoods } from "./Mood";
 
 type Dayjs = dayjs.Dayjs;
 const Calendar = ({
@@ -94,14 +94,14 @@ const Calendar = ({
               if (founded) {
                 allMoods.forEach((mood) => {
                   if (mood == founded.mood) {
-                    bgColor = colors[mood];
+                    bgColor = colorActives[mood];
                   }
                 });
               }
 
               return (
                 <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-md text-center transition-colors
+                  className={`transition-colorActives flex h-8 w-8 items-center justify-center rounded-md text-center
                                      hover:cursor-pointer hover:bg-primary-focus 
                                     ${
                                       isSameMonth
@@ -128,7 +128,7 @@ const Calendar = ({
         {allMoods.map((mood) => {
           return (
             <div className="flex items-center gap-2" key={mood}>
-              <div className={`h-4 w-4 rounded-md ${colors[mood]}`}></div>
+              <div className={`h-4 w-4 rounded-md ${colorActives[mood]}`}></div>
               <div className="capitalize">{mood}</div>
             </div>
           );
