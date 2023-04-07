@@ -109,6 +109,7 @@ const cache = new Map();
 const previewLimit = new Ratelimit({
   redis: upstashRedis,
   limiter: Ratelimit.slidingWindow(5, "10 s"),
+  timeout: 1000,
   analytics: true,
   ephemeralCache: cache,
 });
@@ -128,7 +129,10 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const { success } = await previewLimit.limit(ctx.session.user.id);
+  const { success } = await previewLimit.blockUntilReady(
+    ctx.session.user.id,
+    10_000
+  );
 
   if (!success) {
     throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Slow down!" });
