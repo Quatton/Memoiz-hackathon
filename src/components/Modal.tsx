@@ -7,8 +7,9 @@ type Props = {
   confirm: () => void;
 
   title: string;
-  description: string;
+  description: string | string[];
   confirmLabel: string;
+  cancelLabel: string;
 };
 
 export default function CommonModal({
@@ -18,7 +19,12 @@ export default function CommonModal({
   title,
   description,
   confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
 }: Props) {
+  const descriptionList = Array.isArray(description)
+    ? description
+    : [description];
+
   return (
     <>
       {/* <div className="fixed inset-0 flex items-center justify-center">
@@ -63,13 +69,19 @@ export default function CommonModal({
                   >
                     {title}
                   </Dialog.Title>
-                  <div className="mt-2">
-                    <p className="text-sm">{description}</p>
+                  <div className="mt-2 text-sm">
+                    {descriptionList.map((description, idx) =>
+                      description.length > 0 ? (
+                        <p key={idx}>{description}</p>
+                      ) : (
+                        <br key={idx} />
+                      )
+                    )}
                   </div>
 
                   <div className="mt-4 flex justify-end gap-2">
                     <button type="button" className="btn" onClick={cancel}>
-                      Cancel
+                      {cancelLabel}
                     </button>
                     <button
                       type="button"

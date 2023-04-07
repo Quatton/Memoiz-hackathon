@@ -18,6 +18,7 @@ import { IoMdWarning } from "react-icons/io";
 import Nav from "src/components/Nav";
 import Mood from "src/components/Mood";
 import AppName from "src/components/AppName";
+import CommonModal from "src/components/Modal";
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -67,6 +68,17 @@ const Home: NextPage = () => {
     undefined, // no input
     { enabled: sessionData?.user !== undefined }
   );
+
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+  useEffect(() => {
+    if (window !== undefined) {
+      if (localStorage.getItem("info") === "false") {
+        setIsInfoOpen(false);
+      } else {
+        setIsInfoOpen(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (moodData !== undefined) {
@@ -190,7 +202,7 @@ const Home: NextPage = () => {
               </div>
             )}
           </div>
-          <div className="flex gap-6 flex-wrap justify-center max-w-md">
+          <div className="flex max-w-md flex-wrap justify-center gap-6">
             <button
               className={`btn-primary btn flex items-center gap-2 ${
                 loading ? "loading" : ""
@@ -215,9 +227,31 @@ const Home: NextPage = () => {
               Chat with yourself <BsChatFill size={22} />
             </Link>
           </div>
-
         </main>
       </Container>
+
+      <CommonModal
+        isOpen={isInfoOpen}
+        cancel={() => {
+          setIsInfoOpen(false);
+          localStorage.setItem("info", "false");
+        }}
+        confirm={() => {
+          setIsInfoOpen(false);
+        }}
+        title="Getting Started"
+        description={[
+          "Hello there! Welcome to your personal diary. This is a place where you can write down your thoughts and feelings. You can also see your mood and diary history on the calendar.",
+          "",
+          'To get started, click on the "Write A Diary!" button and start writing your first diary. If you are done, try archiving it by clicking on the "Archive" button. After the diary is archived, Memoiz chat bot will be able to look up your database!',
+          "",
+          'Try talking with yourself by clicking on the "Chat with yourself".',
+          "",
+          "Enjoy!",
+        ]}
+        confirmLabel="Got it!"
+        cancelLabel="Do not show again"
+      />
     </>
   );
 };

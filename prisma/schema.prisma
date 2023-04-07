@@ -10,7 +10,7 @@ datasource db {
 
 model Diary {
   id         String   @id @default(cuid())
-  title      String
+  title      String   @default("Untitled")
   content    String   @db.Text @default("")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
