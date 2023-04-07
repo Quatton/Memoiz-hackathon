@@ -24,8 +24,6 @@ const DiaryPage: NextPage = () => {
   const mutation = api.diary.createDiary.useMutation({
     onSuccess: async (_) => {
       await refetchDiary();
-
-
     },
     onError: (e) => {
       console.error(e);
@@ -41,8 +39,8 @@ const DiaryPage: NextPage = () => {
       </Head>
       <Nav
       />
-      <main className="flex w-full flex-col items-center">
-        <div className="w-full max-w-4xl px-5 overflow-x-auto">
+      <main className="flex w-full flex-col items-center  px-5">
+        <div className="w-full max-w-4xl overflow-x-auto overflow-hidden">
           <table className="table-compact table w-full shadow-md ">
             <thead className="">
               <tr>
@@ -89,24 +87,25 @@ const DiaryPage: NextPage = () => {
 
             </tbody>
           </table>
-          <div className="w-full flex py-3">
-            <button
-              className={`btn-primary ml-auto btn ${loading ? 'loading' : ''}`}
-              onClick={() => {
-                if (loading) return;
-                setLoading(true);
-                void mutation.mutateAsync({
-                  title: "Untitled",
-                  content: "",
-                }).then((x) => {
-                  void router.push(`/diary/${x.id}`);
-                  setLoading(false);
-                });
-              }}
-            >
-              {loading ? "Loading..." : <><RiFileAddFill size={20} className="mr-2" /> New</>}
-            </button>
-          </div>
+
+        </div>
+        <div className="w-full flex py-3">
+          <button
+            className={`btn-primary ml-auto btn ${loading ? 'loading' : ''}`}
+            onClick={() => {
+              if (loading) return;
+              setLoading(true);
+              void mutation.mutateAsync({
+                title: "Untitled",
+                content: "",
+              }).then((x) => {
+                void router.push(`/diary/${x.id}`);
+                setLoading(false);
+              });
+            }}
+          >
+            {loading ? "Loading..." : <><RiFileAddFill size={20} className="mr-2" /> New</>}
+          </button>
         </div>
       </main>
     </Container>

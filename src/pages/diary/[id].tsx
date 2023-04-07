@@ -52,9 +52,15 @@ const DiaryViewPage: NextPage = () => {
 
   const save = useCallback(async () => {
     // if empty, do not save
-    if (title === "" || content === "") return;
+    if (title === "" || content === "") {
+      setSubmit(false);
+      return;
+    }
 
-    if (title === payload.title && content === payload.content) return;
+    if (title === payload.title && content === payload.content) {
+      setSubmit(false);
+      return;
+    }
 
     const id = router.query.id as string;
     await updateDiary.mutateAsync(
@@ -70,6 +76,7 @@ const DiaryViewPage: NextPage = () => {
             title: data.title,
             content: data.content,
           });
+          setSubmit(false)
           setUpdatedAt(data.updatedAt);
         },
       }
@@ -156,7 +163,7 @@ const DiaryViewPage: NextPage = () => {
       <main className="flex w-full flex-col items-center px-5">
         <Nav />
 
-        <form className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
+        <div className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
           {updateDiary.error && (
             <div className="text-center text-red-500">
               {updateDiary.error.message}
@@ -170,7 +177,7 @@ const DiaryViewPage: NextPage = () => {
               }`}
           </div>
 
-          <div className="form-control">
+          <div className="">
             <input
               type="text"
               placeholder="Title"
@@ -264,7 +271,7 @@ const DiaryViewPage: NextPage = () => {
               )}
             </button>
           </div>
-        </form>
+        </div>
       </main>
     </Container>
   );
