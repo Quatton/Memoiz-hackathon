@@ -97,11 +97,11 @@ const DiaryViewPage: NextPage = () => {
   ]);
 
   // time left before archive
-  const [timeLeft, setTimeLeft] = useState({
-    hour: "00",
-    minute: "00",
-    second: "00",
-  });
+  // const [timeLeft, setTimeLeft] = useState({
+  //   hour: "00",
+  //   minute: "00",
+  //   second: "00",
+  // });
 
   // you can manually archive for now
   // useEffect(() => {

@@ -3,20 +3,19 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 import cohere from "cohere-ai";
-import { redis } from "src/server/redis";
+import { redisStack } from "src/server/redis";
 import { TRPCError } from "@trpc/server";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
 
 async function knnSearch(
-  client: typeof redis,
   topK: number,
   authorId: string,
   query_vector: number[]
 ) {
   const query_vector_bytes = Buffer.from(new Float32Array(query_vector).buffer);
   const query = `(@authorId:${authorId})=>[KNN ${topK} @embedding $query_vec AS vector_score]`;
-  const res = await client.ft.search(`diary`, query, {
+  const res = await redisStack.ft.search(`diary`, query, {
     DIALECT: 2,
     SORTBY: "vector_score",
     PARAMS: {
@@ -81,16 +80,16 @@ export const aiRouter = createTRPCRouter({
       // get recent diary entries
 
       try {
-        await redis.connect();
+        await redisStack.connect();
       } catch (error) {
-        console.log(error);
+        // it ok
       }
-      const entries = await knnSearch(redis, 3, ctx.session.user.id, embedding);
+      const entries = await knnSearch(3, ctx.session.user.id, embedding);
 
       try {
-        await redis.quit();
+        await redisStack.quit();
       } catch (error) {
-        console.log(error);
+        // it ok
       }
 
       const schema = z.object({

@@ -9,17 +9,13 @@ import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 import cohere from "cohere-ai";
 import { TRPCError } from "@trpc/server";
-import { redis } from "src/server/redis";
+import { redisStack as redisStack } from "src/server/redis";
 import { SchemaFieldTypes, VectorAlgorithms } from "redis";
 import { type Diary } from "@prisma/client";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
 
-async function load_vector(
-  client: typeof redis,
-  diary: Diary,
-  vector: number[]
-) {
+async function load_vector(diary: Diary, vector: number[]) {
   const key = `diary:${diary.id}`;
 
   const diary_data = {
@@ -30,7 +26,7 @@ async function load_vector(
     authorId: diary.authorId,
   };
 
-  await client.json.set(key, "$", diary_data);
+  await redisStack.json.set(key, "$", diary_data);
 }
 
 async function create_flat_index(
@@ -40,7 +36,7 @@ async function create_flat_index(
   // const number_of_vectors = parseInt(
   //   (await client.get(`diary:${authorId}:count`)) || "0"
   // );
-  await redis.ft.create(
+  await redisStack.ft.create(
     `diary`,
     {
       "$.embedding": {
@@ -160,20 +156,20 @@ export const diaryRouter = createTRPCRouter({
       const embedding = embed.body.embeddings[0];
 
       try {
-        await redis.connect();
+        await redisStack.connect();
       } catch (error) {
-        console.log(error);
+        // it ok
       }
 
-      const res = await redis.ft._list();
+      const res = await redisStack.ft._list();
       if (!res.includes("diary")) {
         await create_flat_index();
       }
-      await load_vector(redis, diary, embedding);
+      await load_vector(diary, embedding);
       try {
-        await redis.quit();
+        await redisStack.quit();
       } catch (error) {
-        console.log(error);
+        // it ok
       }
 
       await ctx.prisma.diary.update({

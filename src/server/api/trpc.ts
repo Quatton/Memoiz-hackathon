@@ -98,6 +98,22 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 export const createTRPCRouter = t.router;
 
 /**
+ * This is a rate-limiting middleware. \
+ * Built from a package @upstash/redis
+ */
+import { Ratelimit } from "@upstash/ratelimit";
+import { upstashRedis } from "src/server/redis";
+
+const cache = new Map();
+
+const previewLimit = new Ratelimit({
+  redis: upstashRedis,
+  limiter: Ratelimit.slidingWindow(5, "10 s"),
+  analytics: true,
+  ephemeralCache: cache,
+});
+
+/**
  * Public (unauthenticated) procedure
  *
  * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
@@ -107,10 +123,17 @@ export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
-const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
+const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
+
+  const { success } = await previewLimit.limit(ctx.session.user.id);
+
+  if (!success) {
+    throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Slow down!" });
+  }
+
   return next({
     ctx: {
       // infers the `session` as non-nullable
