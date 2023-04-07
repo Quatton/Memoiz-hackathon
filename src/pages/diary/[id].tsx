@@ -90,9 +90,15 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
     )
       return;
     // if empty, do not save
-    if (title === "" || content === "") return;
+    if (title === "" || content === "") {
+      setSubmit(false);
+      return;
+    }
 
-    if (title === payload.title && content === payload.content) return;
+    if (title === payload.title && content === payload.content) {
+      setSubmit(false);
+      return;
+    }
 
     await updateDiary.mutateAsync(
       {
@@ -107,6 +113,7 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
             title: data.title,
             content: data.content,
           });
+          setSubmit(false)
           setUpdatedAt(data.updatedAt);
         },
       }
@@ -358,7 +365,7 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
               )}
             </button>
           </div>
-        </form>
+        </div>
       </main>
 
       <CommonModal

@@ -38,8 +38,8 @@ const DiaryPage: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Nav />
-      <main className="flex w-full flex-col items-center">
-        <div className="w-full max-w-4xl px-5">
+      <main className="flex w-full flex-col items-center px-5">
+        <div className="w-full max-w-4xl overflow-x-auto overflow-hidden">
           <table className="table-compact table w-full shadow-md ">
             <thead className="">
               <tr>
@@ -49,15 +49,37 @@ const DiaryPage: NextPage = () => {
                 <th className=""></th>
               </tr>
             </thead>
-            <tbody>
-              {diaryData ? (
-                <></>
-              ) : (
-                <tr className="hover animate-pulse cursor-pointer">
-                  <th className="">Loading...</th>
-                  <td className="">Loading...</td>
-                  <td className="">Loading...</td>
-                  <td className=" truncate">Loading...</td>
+            <tbody >
+              {diaryData ? <></> : <tr
+                className="hover cursor-pointer animate-pulse"
+              >
+                <th className="">
+                  Loading...
+                </th>
+                <td className="">
+                  Loading...
+                </td>
+                <td className="">Loading...</td>
+                <td className=" truncate">Loading...</td>
+              </tr>}
+              {diaryData?.sort((x, y) => +(new Date(y.createdAt)) - +(new Date(x.createdAt)))?.map((diary) => (
+                <tr
+                  key={diary.id}
+                  className="hover cursor-pointer "
+                  onClick={() => {
+                    if (loading) return;
+                    setLoading(true);
+                    void router.push(`/diary/${diary.id}`);
+                  }}
+                >
+                  <th className="">
+                    {diary.isArchived ? <BsArchiveFill className="text-primary ml-2" /> : <BsArchive className="ml-2" />}
+                  </th>
+                  <td className="">
+                    {dayjs(diary.createdAt).format('D MMM YYYY')}
+                  </td>
+                  <td className="">{diary.title}</td>
+                  <td className="truncate">{diary.content.length > 20 ? `${diary.content.slice(0, 20)}...` : diary.content}</td>
                 </tr>
               )}
               {diaryData
@@ -94,32 +116,24 @@ const DiaryPage: NextPage = () => {
                 ))}
             </tbody>
           </table>
-          <div className="flex w-full py-3">
-            <button
-              className={`btn-primary btn ml-auto ${loading ? "loading" : ""}`}
-              onClick={() => {
-                if (loading) return;
-                setLoading(true);
-                void mutation
-                  .mutateAsync({
-                    title: "Untitled",
-                    content: "",
-                  })
-                  .then((x) => {
-                    void router.push(`/diary/${x.id}`);
-                    setLoading(false);
-                  });
-              }}
-            >
-              {loading ? (
-                "Loading..."
-              ) : (
-                <>
-                  <RiFileAddFill size={20} className="mr-2" /> New
-                </>
-              )}
-            </button>
-          </div>
+        </div>
+        <div className="w-full flex py-3">
+          <button
+            className={`btn-primary ml-auto btn ${loading ? 'loading' : ''}`}
+            onClick={() => {
+              if (loading) return;
+              setLoading(true);
+              void mutation.mutateAsync({
+                title: "Untitled",
+                content: "",
+              }).then((x) => {
+                void router.push(`/diary/${x.id}`);
+                setLoading(false);
+              });
+            }}
+          >
+            {loading ? "Loading..." : <><RiFileAddFill size={20} className="mr-2" /> New</>}
+          </button>
         </div>
       </main>
     </Container>
