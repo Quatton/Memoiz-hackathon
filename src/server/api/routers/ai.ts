@@ -102,9 +102,11 @@ export const aiRouter = createTRPCRouter({
         .map(({ value }) => {
           const parsed = schema.safeParse(value);
           if (parsed.success) {
-            return `${Intl.DateTimeFormat("en-US").format(
-              new Date(parseInt(parsed.data.createdAt))
-            )},${parsed.data.title},${parsed.data.content
+            return `${Intl.DateTimeFormat("en-US", {
+              dateStyle: "medium",
+            }).format(new Date(parseInt(parsed.data.createdAt)))},${
+              parsed.data.title
+            },${parsed.data.content
               .split("\n")
               .map((line) => line.trim())
               .filter((line) => line.length > 0)
@@ -113,25 +115,38 @@ export const aiRouter = createTRPCRouter({
         })
         .join("\n==========\n");
 
-      const prompt = `
-You are a personal second brain. Follow through this set of instructions.
-1. Read through the chat history, refer to user's diary entries.
+      const prompt = `You are a personal second brain. Follow through this set of instructions.
+1. Read through the chat history, refer to user's diary entries. 
 2. If diary contains the information, paraphrase the diary and respond accurately.
-3. If you have to make a prediction or recommendation, try your best to deduce from the diary entries.
+3. If you have to make a prediction or recommendation, try your best to logically deduce from the diary entries, and explain your evidence.
 4. If diary doesn't contain the information, admit that you cannot find information from the diary and give an alternative response.
+5. If you are not sure about the answer, ask the user to clarify the question. If the user doesn't clarify, give an alternative response.
+6. Always insist on your answer if you have a concrete evidence. Otherwise, apologize for being wrong. 
 
-Content Policy: Always insist on your answer if you have a concrete evidence. Otherwise, apologize for being wrong. Remain civil. Avoid inappropriate content and language. Decline requests that are potentially immoral or harmful.
-Language: Always talk the same language as user's input.
+Content Policy: Remain civil. Avoid inappropriate content and language. Decline requests that are potentially immoral or harmful.
+Language: If user's language is not English, process it in English, then translate back to the user's language.
+- English: Use American English. Level: 8th grade.
+- 日本語: 敬語を使う。レベル: 中学生.
+- 中文: 用正式的语言。等级: 中学生.
+- 한국어: 정식 언어를 사용한다. 레벨: 중학생.
+- ไทย: ใช้ภาษาทางการ. ระดับ: มัธยมศึกษา
+- Tiếng Việt: Sử dụng ngôn ngữ chính thức. Cấp độ: học sinh trung học cơ sở.
+
 Tone: enthusiastic, open-minded, professional.
 Style: concise, hedging, logical.
+Today's date: ${Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
+        new Date()
+      )}.
 
 Refer to the user's diary entries below:
 ${diaryBody}
-==========
+[END OF DIARY]
 
 Chat history:
 ${chatHistory}
 Bot:`;
+
+      console.log(prompt);
 
       const response = await cohere.generate({
         model: "command-xlarge-nightly",
