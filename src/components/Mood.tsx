@@ -31,13 +31,13 @@ export const colorBorders = {
 };
 
 export const colorActives = {
-  anger: "bg-red-300 shadow-md shadow-red-500",
-  disgust: "bg-green-300 shadow-md shadow-green-500",
-  fear: "bg-yellow-300 shadow-md shadow-yellow-500",
-  joy: "bg-blue-300 shadow-md shadow-blue-500",
-  neutral: "bg-gray-300 shadow-md shadow-gray-500",
-  sadness: "bg-indigo-300 shadow-md shadow-indigo-500",
-  surprise: "bg-pink-300 shadow-md shadow-pink-500",
+  anger: "bg-red-300 shadow-sm shadow-red-500",
+  disgust: "bg-green-300 shadow-sm shadow-green-500",
+  fear: "bg-yellow-300 shadow-sm shadow-yellow-500",
+  joy: "bg-blue-300 shadow-sm shadow-blue-500",
+  neutral: "bg-gray-300 shadow-sm shadow-gray-500",
+  sadness: "bg-indigo-300 shadow-sm shadow-indigo-500",
+  surprise: "bg-pink-300 shadow-sm shadow-pink-500",
 };
 
 export const colorActivesText = {
@@ -62,17 +62,17 @@ export const colorActivesBorder = {
 
 export const colorHover = {
   anger:
-    "hover:bg-red-500 hover:text-red-300 hover:border-red-500 hover:shadow-md hover:shadow-red-500",
+    "hover:bg-red-500 hover:text-red-300 hover:border-red-500 hover:shadow-sm hover:shadow-red-500",
   disgust:
-    "hover:bg-green-500 hover:text-green-300 hover:border-green-500 hover:shadow-md hover:shadow-green-500",
-  fear: "hover:bg-yellow-500 hover:text-yellow-300 hover:border-yellow-500 hover:shadow-md hover:shadow-yellow-500",
-  joy: "hover:bg-blue-500 hover:text-blue-300 hover:border-blue-500 hover:shadow-md hover:shadow-blue-500",
+    "hover:bg-green-500 hover:text-green-300 hover:border-green-500 hover:shadow-sm hover:shadow-green-500",
+  fear: "hover:bg-yellow-500 hover:text-yellow-300 hover:border-yellow-500 hover:shadow-sm hover:shadow-yellow-500",
+  joy: "hover:bg-blue-500 hover:text-blue-300 hover:border-blue-500 hover:shadow-sm hover:shadow-blue-500",
   neutral:
-    "hover:bg-gray-500 hover:text-gray-300 hover:border-gray-500 hover:shadow-md hover:shadow-gray-500",
+    "hover:bg-gray-500 hover:text-gray-300 hover:border-gray-500 hover:shadow-sm hover:shadow-gray-500",
   sadness:
-    "hover:bg-indigo-500 hover:text-indigo-300 hover:border-indigo-500 hover:shadow-md hover:shadow-indigo-500",
+    "hover:bg-indigo-500 hover:text-indigo-300 hover:border-indigo-500 hover:shadow-sm hover:shadow-indigo-500",
   surprise:
-    "hover:bg-pink-500 hover:text-pink-300 hover:border-pink-500 hover:shadow-md hover:shadow-pink-500",
+    "hover:bg-pink-500 hover:text-pink-300 hover:border-pink-500 hover:shadow-sm hover:shadow-pink-500",
 };
 
 export const allMoods: EmotionType[] = [
@@ -115,7 +115,7 @@ const Mood = ({
     if (clicked === todayMood) setClicked("");
   }, [clicked, todayMood]);
   return (
-    <div className="flex w-72 flex-col items-center justify-center gap-3 rounded-xl bg-base-300 p-6 shadow-md md:w-96">
+    <div className="flex w-72 flex-col items-center justify-center gap-3 rounded-xl bg-base-300 p-6 shadow-sm md:w-96">
       <h1 className="my-2 text-center text-2xl font-bold text-base-content">{`Today's Mood`}</h1>
       <div className="grid w-full grid-cols-2 items-center justify-center gap-3 text-center md:grid-cols-2">
         {allMoods.map((x) => {
