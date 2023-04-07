@@ -1,4 +1,4 @@
-import { GetServerSideProps, type NextPage } from "next";
+import { type GetServerSideProps, type NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState, useCallback } from "react";
 import { BsArchive, BsArchiveFill } from "react-icons/bs";
@@ -7,6 +7,7 @@ import Header from "src/components/Header";
 import Loading from "src/components/Loading";
 import Nav from "src/components/Nav";
 import { api } from "src/utils/api";
+import { MdDeleteForever } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import CommonModal from "src/components/Modal";
 
@@ -41,11 +42,28 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [submit, setSubmit] = useState(false);
-  const [isArchiving, setIsArchiving] = useState(false);
 
   const updateDiary = api.diary.updateDiary.useMutation({});
+  const deleteDiary = api.diary.deleteDiary.useMutation({
+    onSuccess: () => {
+      void router.replace("/diary");
+    },
+  });
 
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isUnarchiveModalOpen, setIsUnarchiveModalOpen] = useState(false);
+
+  const unarchive = api.diary.unarchiveDiary.useMutation({
+    onSuccess: () => {
+      void refetch();
+    },
+  });
+
+  const allowUnarchive =
+    data &&
+    data.isArchived &&
+    Date.now() - new Date(data.updatedAt).getTime() > 24 * 60 * 60 * 1000;
 
   const archive = api.diary.archiveDiary.useMutation({
     onSuccess: () => {
@@ -62,6 +80,14 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
 
   const save = useCallback(async () => {
+    if (
+      updateDiary.isLoading ||
+      archive.isLoading ||
+      unarchive.isLoading ||
+      !data ||
+      data.isArchived
+    )
+      return;
     // if empty, do not save
     if (title === "" || content === "") return;
 
@@ -84,21 +110,25 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
         },
       }
     );
-  }, [title, content, payload, updateDiary]);
+  }, [title, content, payload.title, payload.content, updateDiary, id]);
 
   const saveAndArchive = useCallback(async () => {
-    if (archive.isLoading || !data) return;
+    if (
+      updateDiary.isLoading ||
+      archive.isLoading ||
+      unarchive.isLoading ||
+      !data ||
+      data.isArchived
+    )
+      return;
 
     if (title === "" || content === "") return;
-
-    if (title === payload.title && content === payload.content) return;
-
     await archive.mutateAsync({
       id: data.id,
       title: title,
       content: content,
     });
-  }, [archive, data, save]);
+  }, [archive, content, data, payload.content, payload.title, title]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -170,31 +200,41 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
         <Nav />
 
         <form className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
-          {updateDiary.error && (
-            <div className="text-center text-red-500">
-              {updateDiary.error.message}
-            </div>
-          )}
-
           <div className="text-center text-gray-500">
-            {`Last updated at ${
-              (updatedAt
-                ? updatedAt.toLocaleString()
-                : data?.updatedAt.toLocaleString()) || ""
-            }`}
+            <span className="text-gray-500">
+              {`Last updated at ${
+                Intl.DateTimeFormat("en-US", {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(updatedAt ? updatedAt : data?.updatedAt) || ""
+              }`}
+            </span>
+
+            {updateDiary.error && (
+              <span className="ml-2 text-center text-red-500">
+                {JSON.parse(updateDiary.error.message)[0].message}
+              </span>
+            )}
           </div>
 
           <div className="form-control">
             <input
               type="text"
               placeholder="Title"
-              className="input-ghost input text-4xl font-semibold"
+              className="input-ghost input pr-16 text-4xl font-semibold"
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
               }}
               readOnly={data.isArchived}
             />
+            <label
+              className={`label ml-auto ${
+                title.length > 60 ? "text-error" : ""
+              }`}
+            >
+              {title.length}/60
+            </label>
           </div>
           <div className="form-control">
             <textarea
@@ -208,31 +248,55 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
               }}
               readOnly={data.isArchived}
             ></textarea>
+
+            <label
+              className={`label ml-auto ${
+                content.length > 500 ? "text-error" : ""
+              }`}
+            >
+              {
+                // `${
+                //   content
+                //     .replace(/[^\w]/g, " ")
+                //     .split(" ")
+                //     .filter((x) => x != "").length
+                // } word${
+                //   content
+                //     .replace(/[^\w]/g, " ")
+                //     .split(" ")
+                //     .filter((x) => x != "").length > 1
+                //     ? "s"
+                //     : ""
+                // }`
+                content.length
+              }
+              /500
+            </label>
           </div>
-          <div className="ml-auto">
-            {`${
-              content
-                .replace(/[^\w]/g, " ")
-                .split(" ")
-                .filter((x) => x != "").length
-            } word${
-              content
-                .replace(/[^\w]/g, " ")
-                .split(" ")
-                .filter((x) => x != "").length > 1
-                ? "s"
-                : ""
-            }`}
-          </div>
+
           <div className="flex w-full items-center justify-end gap-3 rounded-md">
             <button
+              className="btn-error btn mr-auto"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsDeleteModalOpen(true);
+              }}
+            >
+              {!deleteDiary.isLoading && <MdDeleteForever size={20} />}
+              <span className="ml-2">
+                {deleteDiary.isLoading ? "Deleting..." : "Delete"}
+              </span>
+            </button>
+            <button
               className={`btn ${
-                !data.isArchived ? "btn-accent" : "btn-disabled"
+                !data.isArchived || allowUnarchive
+                  ? "btn-accent"
+                  : "btn-disabled"
               } ${archive.isLoading ? "loading" : ""}`}
               onClick={(e) => {
                 e.preventDefault();
-                setIsArchiveModalOpen(true);
-                // void saveAndArchive();
+                if (!data.isArchived) setIsArchiveModalOpen(true);
+                if (allowUnarchive) setIsUnarchiveModalOpen(true);
               }}
             >
               {archive.isLoading ? (
@@ -247,7 +311,7 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
                   ? "Archiving..."
                   : !data.isArchived
                   ? "Archive"
-                  : "Archived"}
+                  : "Unarchive"}
               </span>
             </button>
             <button
@@ -276,6 +340,34 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
       </main>
 
       <CommonModal
+        isOpen={isUnarchiveModalOpen}
+        cancel={() => setIsUnarchiveModalOpen(false)}
+        confirm={() => {
+          setIsUnarchiveModalOpen(false);
+          unarchive.mutate({
+            id: data.id,
+          });
+        }}
+        title="Confirm Unarchive"
+        description="This document will be unarchived. You will be able to edit this document again, but Memoiz will forget this piece of information. Are you sure?"
+        confirmLabel="Unarchive"
+      />
+
+      <CommonModal
+        isOpen={isDeleteModalOpen}
+        cancel={() => setIsDeleteModalOpen(false)}
+        confirm={() => {
+          setIsDeleteModalOpen(false);
+          deleteDiary.mutate({
+            id: data.id,
+          });
+        }}
+        title="Confirm Deletion"
+        description="This action cannot be undone"
+        confirmLabel="Delete"
+      />
+
+      <CommonModal
         isOpen={isArchiveModalOpen}
         cancel={() => setIsArchiveModalOpen(false)}
         confirm={() => {
@@ -290,6 +382,7 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const { id } = context.params as { id: string };
 
