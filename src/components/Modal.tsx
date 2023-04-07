@@ -8,8 +8,8 @@ type Props = {
 
   title: string;
   description: string | string[];
-  confirmLabel: string;
-  cancelLabel: string;
+  confirmLabel: string | undefined;
+  cancelLabel: string | undefined;
 };
 
 export default function CommonModal({
