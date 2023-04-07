@@ -1,15 +1,15 @@
 # Memoiz - Mood Tracker Demo
 
-## About
-
-Team: We Have Absolutely No Idea
-
 31 March - 7 April 2023 \
 Lablab.ai: Build your AI Startup Hackathon. Episode 2
 
 Ever thought of "I wish I could Google my own brain?" The future is now! Memoiz is a semantic search tool for your database that allows you to search for your data using natural language. Paired with a powerful language model, Memoiz can chat with you and help you find what you are looking for.
 
 This current demo is an example of how Memoiz can be used. It is a mood tracker database where you can log your mood and Memoiz will help you remind you of your past days.
+
+## About
+
+Team: We Have Absolutely No Idea
 
 ## Why & How we are building Memoiz
 
