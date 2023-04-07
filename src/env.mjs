@@ -18,10 +18,12 @@ const server = z.object({
     // VERCEL_URL doesn't include `https` so it cant be validated as a URL
     process.env.VERCEL ? z.string().min(1) : z.string().url()
   ),
+  UPSTASH_REDIS_URL: z.string().min(1),
+  UPSTASH_REDIS_TOKEN: z.string().min(1),
   // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
-  DISCORD_CLIENT_ID: z.string(),
-  DISCORD_CLIENT_SECRET: z.string(),
-  COHERE_API_KEY: z.string(),
+  DISCORD_CLIENT_ID: z.string().min(1),
+  DISCORD_CLIENT_SECRET: z.string().min(1),
+  COHERE_API_KEY: z.string().min(1),
 });
 
 /**
@@ -46,6 +48,8 @@ const processEnv = {
   DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
   DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
   COHERE_API_KEY: process.env.COHERE_API_KEY,
+  UPSTASH_REDIS_URL: process.env.UPSTASH_REDIS_URL,
+  UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 

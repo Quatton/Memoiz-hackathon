@@ -1,25 +1,16 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { z } from "zod";
 
 import { createTRPCRouter, protectedProcedure } from "src/server/api/trpc";
 
 import cohere from "cohere-ai";
 import { TRPCError } from "@trpc/server";
-import { redis } from "src/server/redis";
+import { redisStack as redisStack } from "src/server/redis";
 import { SchemaFieldTypes, VectorAlgorithms } from "redis";
 import { type Diary } from "@prisma/client";
 
 cohere.init(process.env.COHERE_API_KEY ? process.env.COHERE_API_KEY : "");
 
-async function load_vector(
-  client: typeof redis,
-  diary: Diary,
-  vector: number[]
-) {
+async function load_vector(diary: Diary, vector: number[]) {
   const key = `diary:${diary.id}`;
 
   const diary_data = {
@@ -30,7 +21,7 @@ async function load_vector(
     authorId: diary.authorId,
   };
 
-  await client.json.set(key, "$", diary_data);
+  await redisStack.json.set(key, "$", diary_data);
 }
 
 async function create_flat_index(
@@ -40,7 +31,7 @@ async function create_flat_index(
   // const number_of_vectors = parseInt(
   //   (await client.get(`diary:${authorId}:count`)) || "0"
   // );
-  await redis.ft.create(
+  await redisStack.ft.create(
     `diary`,
     {
       "$.embedding": {
@@ -117,10 +108,134 @@ export const diaryRouter = createTRPCRouter({
       });
     }),
 
+  deleteDiary: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1).max(100),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const diary = await ctx.prisma.diary.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (!diary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Diary not found",
+        });
+      }
+
+      if (diary.authorId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to delete this diary",
+        });
+      }
+
+      await ctx.prisma.diary.delete({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (!diary.isArchived) return true;
+
+      // forget on redis
+
+      try {
+        await redisStack.connect();
+      } catch (e) {
+        // it ok
+      }
+
+      await redisStack.json.forget(`diary:${diary.id}`);
+
+      try {
+        await redisStack.quit();
+      } catch (e) {
+        // it ok
+      }
+
+      return true;
+    }),
+
+  unarchiveDiary: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1).max(100),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const diary = await ctx.prisma.diary.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (!diary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Diary not found",
+        });
+      }
+
+      if (diary.authorId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to unarchive this diary",
+        });
+      }
+
+      if (!diary.isArchived) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Diary is not archived",
+        });
+      }
+
+      // if updatedAt was less than 24 hr ago, don't allow
+      if (diary.updatedAt.getTime() > Date.now() - 24 * 60 * 60 * 1000) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Diary was updated less than 24 hours ago",
+        });
+      }
+
+      // forget on redis
+
+      try {
+        await redisStack.connect();
+      } catch (e) {
+        // it ok
+      }
+
+      await redisStack.json.forget(`diary:${diary.id}`);
+
+      try {
+        await redisStack.quit();
+      } catch (e) {
+        // it ok
+      }
+
+      await ctx.prisma.diary.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          isArchived: false,
+        },
+      });
+    }),
+
   archiveDiary: protectedProcedure
     .input(
       z.object({
         id: z.string().min(1).max(100),
+        title: z.string().min(1).max(60),
+        content: z.string().max(500),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -160,20 +275,20 @@ export const diaryRouter = createTRPCRouter({
       const embedding = embed.body.embeddings[0];
 
       try {
-        await redis.connect();
+        await redisStack.connect();
       } catch (error) {
-        console.log(error);
+        // it ok
       }
 
-      const res = await redis.ft._list();
+      const res = await redisStack.ft._list();
       if (!res.includes("diary")) {
         await create_flat_index();
       }
-      await load_vector(redis, diary, embedding);
+      await load_vector(diary, embedding);
       try {
-        await redis.quit();
+        await redisStack.quit();
       } catch (error) {
-        console.log(error);
+        // it ok
       }
 
       await ctx.prisma.diary.update({
@@ -182,6 +297,8 @@ export const diaryRouter = createTRPCRouter({
         },
         data: {
           isArchived: true,
+          title: input.title,
+          content: input.content,
         },
       });
 
@@ -191,8 +308,8 @@ export const diaryRouter = createTRPCRouter({
   createDiary: protectedProcedure
     .input(
       z.object({
-        title: z.string().min(1).max(100),
-        content: z.string().max(10000),
+        title: z.string().min(1).max(60),
+        content: z.string().max(500),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -215,8 +332,8 @@ export const diaryRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string().min(1).max(100),
-        title: z.string().min(1).max(100),
-        content: z.string().max(10000),
+        title: z.string().min(1).max(60),
+        content: z.string().max(500),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -230,6 +347,12 @@ export const diaryRouter = createTRPCRouter({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Diary not found",
+        });
+
+      if (originalDiary.authorId !== ctx.session.user.id)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to update this diary",
         });
 
       if (originalDiary.isArchived)
