@@ -53,9 +53,7 @@ const Home: NextPage = () => {
     },
   });
 
-  const [todayMood, setTodayMood] = useState<string>()
-
-
+  const [todayMood, setTodayMood] = useState<string>();
 
   const { data: sessionData, status: sessionStatus } = useSession();
 
@@ -65,47 +63,46 @@ const Home: NextPage = () => {
       { enabled: sessionData?.user !== undefined }
     );
 
-
-  const { data: moodData, refetch: refetchMood } =
-    api.mood.getMoods.useQuery(
-      undefined, // no input
-      { enabled: sessionData?.user !== undefined }
-    );
+  const { data: moodData, refetch: refetchMood } = api.mood.getMoods.useQuery(
+    undefined, // no input
+    { enabled: sessionData?.user !== undefined }
+  );
 
   useEffect(() => {
     if (moodData !== undefined) {
-      setMoods(moodData.map((data) => {
-        if (dayjs().isSame(dayjs(data.createdAt), 'day')) {
-          setTodayMood(data.value)
-        }
-        return {
-          date: data.createdAt,
-          mood: data.value
-        }
-      }))
+      setMoods(
+        moodData.map((data) => {
+          if (dayjs().isSame(dayjs(data.createdAt), "day")) {
+            setTodayMood(data.value);
+          }
+          return {
+            date: data.createdAt,
+            mood: data.value,
+          };
+        })
+      );
     }
-  }, [moodData])
-
+  }, [moodData]);
 
   const [selectedDay, setSelectedDay] = useState<Date>();
   const [diary, setDiary] = useState<
     { title: string; content: string; id: string }[]
   >([]);
 
-
-  const [moods, setMoods] = useState<{ date: Date, mood: string }[]>([]);
+  const [moods, setMoods] = useState<{ date: Date; mood: string }[]>([]);
 
   const handleSelectMood = (x: string) => {
-
-    const founded = moodData?.find((x) => dayjs().isSame(dayjs(x.createdAt), "day"))
+    const founded = moodData?.find((x) =>
+      dayjs().isSame(dayjs(x.createdAt), "day")
+    );
 
     if (founded !== undefined) {
-      void updateMood.mutateAsync({ id: founded.id, value: x })
-      return
+      void updateMood.mutateAsync({ id: founded.id, value: x });
+      return;
     }
-    void mutationMood.mutateAsync({ value: x })
-    return
-  }
+    void mutationMood.mutateAsync({ value: x });
+    return;
+  };
   useEffect(() => {
     if (selectedDay && diaryData) {
       setDiary(
@@ -124,20 +121,19 @@ const Home: NextPage = () => {
     }
   }, [selectedDay, diaryData]);
 
-
-
   const handleCreateDiary = () => {
     if (loading) return;
     setLoading(true);
-    void mutation.mutateAsync({
-      title: "Untitled",
-      content: "",
-    }).then((x) => {
-      void router.push(`/diary/${x.id}`)
-      setLoading(false)
-    });
-  }
-
+    void mutation
+      .mutateAsync({
+        title: "Untitled",
+        content: "",
+      })
+      .then((x) => {
+        void router.push(`/diary/${x.id}`);
+        setLoading(false);
+      });
+  };
 
   if (sessionStatus === "loading") {
     return <Loading />;
@@ -145,14 +141,12 @@ const Home: NextPage = () => {
     return <ToSignIn />;
   }
 
-
-
   return (
     <>
       <Header title="" desc="" />
       <Container>
         <Nav />
-        <main className="mx-auto px-5 flex max-w-3xl flex-col items-center justify-center gap-6 pb-12">
+        <main className="mx-auto flex max-w-3xl flex-col items-center justify-center gap-6 px-5 pb-12">
           <AppName />
           <Mood setMood={handleSelectMood} todayMood={todayMood} />
           <Calendar
@@ -163,10 +157,12 @@ const Home: NextPage = () => {
             selecting={selectedDay}
           />
 
-          <div className="flex flex-col justify-center items-center gap-3">
-            <h1 className="text-xl">{dayjs(selectedDay).format("D MMM YYYY")}</h1>
+          <div className="flex flex-col items-center justify-center gap-3">
+            <h1 className="text-xl">
+              {dayjs(selectedDay).format("D MMM YYYY")}
+            </h1>
             {diary && diary.length > 0 ? (
-              diary.map((currentDiary, idx) => {
+              diary.map((currentDiary) => {
                 return (
                   <div
                     className="w-72 rounded-xl  bg-base-300 p-3 transition-colors hover:cursor-pointer hover:bg-base-200 md:w-96"
@@ -175,10 +171,13 @@ const Home: NextPage = () => {
                       void router.push(`/diary/${currentDiary.id}`);
                     }}
                   >
-                    <h1 className="font-bold text-lg text-base-content">
+                    <h1 className="text-lg font-bold text-base-content">
                       {currentDiary.title}
                     </h1>
-                    <p className="text-base-content">{currentDiary.content.slice(0, 50)}{currentDiary.content.length > 50 ? '...' : ''}</p>
+                    <p className="text-base-content">
+                      {currentDiary.content.slice(0, 50)}
+                      {currentDiary.content.length > 50 ? "..." : ""}
+                    </p>
                   </div>
                 );
               })
@@ -193,10 +192,15 @@ const Home: NextPage = () => {
           </div>
           <div className="flex gap-6">
             <button
-              className={`btn-primary btn flex items-center gap-2 ${loading ? 'loading' : ''}`}
-              onClick={() => { handleCreateDiary() }}
+              className={`btn-primary btn flex items-center gap-2 ${
+                loading ? "loading" : ""
+              }`}
+              onClick={() => {
+                handleCreateDiary();
+              }}
             >
-              {loading ? 'Loading...' : 'Write A Diary!'}<GiNotebook size={24} />
+              {loading ? "Loading..." : "Write A Diary!"}
+              <GiNotebook size={24} />
             </button>
             <Link
               href={"/diary"}

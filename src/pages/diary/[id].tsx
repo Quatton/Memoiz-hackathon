@@ -10,6 +10,7 @@ import { api } from "src/utils/api";
 import { MdDeleteForever } from "react-icons/md";
 import { FaSave } from "react-icons/fa";
 import CommonModal from "src/components/Modal";
+import { type TRPCError } from "@trpc/server";
 
 const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
   const router = useRouter();
@@ -110,7 +111,17 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
         },
       }
     );
-  }, [title, content, payload.title, payload.content, updateDiary, id]);
+  }, [
+    updateDiary,
+    archive.isLoading,
+    unarchive.isLoading,
+    data,
+    title,
+    content,
+    payload.title,
+    payload.content,
+    id,
+  ]);
 
   const saveAndArchive = useCallback(async () => {
     if (
@@ -128,7 +139,14 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
       title: title,
       content: content,
     });
-  }, [archive, content, data, payload.content, payload.title, title]);
+  }, [
+    archive,
+    content,
+    data,
+    title,
+    unarchive.isLoading,
+    updateDiary.isLoading,
+  ]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -212,7 +230,11 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
 
             {updateDiary.error && (
               <span className="ml-2 text-center text-red-500">
-                {JSON.parse(updateDiary.error.message)[0].message}
+                {(JSON.parse(updateDiary.error.message) as Array<TRPCError>)
+                  ? (
+                      JSON.parse(updateDiary.error.message) as Array<TRPCError>
+                    )[0]?.message
+                  : "Something went wrong"}
               </span>
             )}
           </div>

@@ -25,7 +25,7 @@ const DiaryPage: NextPage = () => {
     onSuccess: async (_) => {
       await refetchDiary();
     },
-    onError: (e) => {
+    onError: (_) => {
       setLoading(false);
     },
   });
