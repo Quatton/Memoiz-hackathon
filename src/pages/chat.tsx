@@ -84,7 +84,7 @@ const Home: NextPage = () => {
     <Container>
       <Header title="Chat" desc="" />
       <Nav />
-      <main className="h-full w-full flex flex-col justify-center items-center flex-1 pb-16 pt-12 px-5">
+      <main className="h-full w-full flex flex-col justify-center items-center max-w-lg flex-1 pb-16 pt-12 px-5">
         <div className="flex w-full items-center justify-center gap-2 rounded-xl text-sm sm:text-base mb-2">
           <MdWarning />
           <span>Chat history is not saved upon closing</span>
@@ -95,7 +95,7 @@ const Home: NextPage = () => {
               return (
                 <div
                   key={idx}
-                  className={`chat ${x.type === "received" ? "chat-start" : "chat-end"
+                  className={` chat ${x.type === "received" ? "chat-start" : "chat-end"
                     }`}
                 >
                   <div className="chat-bubble">{x.text}</div>
