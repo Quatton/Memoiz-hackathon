@@ -227,7 +227,8 @@ const DiaryViewPage: NextPage = () => {
                   void save().then(async () => {
                     await archive.mutateAsync({
                       id: data.id,
-                    });
+                    }).then(() => { setIsArchiving(false); });
+
                   });
                 }}
               >
