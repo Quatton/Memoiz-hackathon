@@ -19,7 +19,7 @@ const Mood = ({ setMood, todayMood }: { todayMood: string | undefined, setMood: 
     const [clicked, setClicked] = useState<string>()
     useEffect(() => { if (clicked === todayMood) setClicked('') }, [clicked, todayMood])
     return (
-        <div className="flex flex-col justify-center items-center gap-3 w-72 md:w-96 rounded-xl bg-base-300 p-6 shadow-md">
+        <div className="flex flex-col justify-center items-center gap-3 w-full rounded-xl bg-base-300 p-6 shadow-md max-w-sm">
             <h1 className="text-center text-2xl font-bold text-base-content my-2">{`Today's Mood`}</h1>
             <div className="w-full grid grid-cols-2 md:grid-cols-2 text-center justify-center items-center gap-3">
                 {allMoods.map((x) => {
