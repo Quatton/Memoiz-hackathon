@@ -1,4 +1,4 @@
-import { type NextPage } from "next";
+import { GetServerSideProps, type NextPage } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState, useCallback } from "react";
 import { BsArchive, BsArchiveFill } from "react-icons/bs";
@@ -9,12 +9,13 @@ import Nav from "src/components/Nav";
 import { api } from "src/utils/api";
 import { FaSave } from "react-icons/fa";
 import CommonModal from "src/components/Modal";
-const DiaryViewPage: NextPage = () => {
+
+const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
   const router = useRouter();
 
   const { data, isLoading, refetch } = api.diary.getDiaryById.useQuery(
     {
-      id: (router.query.id as string) || "",
+      id: id,
     },
     {
       onSuccess(data) {
@@ -66,7 +67,6 @@ const DiaryViewPage: NextPage = () => {
 
     if (title === payload.title && content === payload.content) return;
 
-    const id = router.query.id as string;
     await updateDiary.mutateAsync(
       {
         id,
@@ -84,36 +84,31 @@ const DiaryViewPage: NextPage = () => {
         },
       }
     );
-  }, [title, content, payload, updateDiary, router.query.id]);
+  }, [title, content, payload, updateDiary]);
 
   const saveAndArchive = useCallback(async () => {
     if (archive.isLoading || !data) return;
-    setIsArchiving(true);
-    await save();
+
+    if (title === "" || content === "") return;
+
+    if (title === payload.title && content === payload.content) return;
+
     await archive.mutateAsync({
       id: data.id,
+      title: title,
+      content: content,
     });
   }, [archive, data, save]);
 
   useEffect(() => {
-    if (router.query.id) {
-      const timer = setTimeout(() => {
-        void save();
-      }, 500);
+    const timer = setTimeout(() => {
+      void save();
+    }, 500);
 
-      return () => {
-        clearTimeout(timer);
-      };
-    }
-  }, [
-    title,
-    content,
-    router.query.id,
-    payload.title,
-    payload.content,
-    updateDiary,
-    save,
-  ]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [title, content, payload.title, payload.content, updateDiary, save]);
 
   // time left before archive
   // const [timeLeft, setTimeLeft] = useState({
@@ -159,7 +154,12 @@ const DiaryViewPage: NextPage = () => {
   //   };
   // }, [data]);
 
-  if (isLoading || !data) {
+  if (isLoading) {
+    return <Loading />;
+  }
+
+  if (!data) {
+    void router.replace("/404");
     return <Loading />;
   }
 
@@ -288,6 +288,21 @@ const DiaryViewPage: NextPage = () => {
       />
     </Container>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { id } = context.params as { id: string };
+
+  if (!id)
+    return {
+      notFound: true,
+    };
+
+  return {
+    props: {
+      id,
+    },
+  };
 };
 
 export default DiaryViewPage;
