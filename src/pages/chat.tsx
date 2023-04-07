@@ -84,13 +84,13 @@ const Home: NextPage = () => {
     <Container>
       <Header title="Chat" desc="" />
       <Nav />
-      <main className="h-full flex flex-col justify-center items-center flex-1 pb-16 pt-12">
-        <div className="flex w-72 items-center justify-center gap-2 rounded-xl text-sm sm:text-base md:w-96">
+      <main className="h-full w-full flex flex-col justify-center items-center flex-1 pb-16 pt-12 px-5">
+        <div className="flex w-full items-center justify-center gap-2 rounded-xl text-sm sm:text-base mb-2">
           <MdWarning />
           <span>Chat history is not saved upon closing</span>
         </div>
         <div>
-          <div className="w-72 rounded-t-xl bg-slate-50 px-2 py-16 md:w-96">
+          <div className="w-full rounded-t-xl bg-slate-50 px-2 py-16">
             {chat.map((x, idx) => {
               return (
                 <div
@@ -165,7 +165,7 @@ const Home: NextPage = () => {
               </div>
             )}
           </div>
-          <div className="-mt-1 w-72 rounded-b-xl bg-white p-2 md:w-96">
+          <div className="-mt-1 w-full rounded-b-xl bg-white p-2">
             <form
               className="input-group w-full"
               onSubmit={(e) => {

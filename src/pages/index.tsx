@@ -169,7 +169,7 @@ const Home: NextPage = () => {
               diary.map((currentDiary, idx) => {
                 return (
                   <div
-                    className="w-72 rounded-xl  bg-base-300 p-3 transition-colors hover:cursor-pointer hover:bg-base-200 md:w-96"
+                    className="w-full rounded-xl  bg-base-300 p-3 transition-colors hover:cursor-pointer hover:bg-base-200"
                     key={currentDiary.id}
                     onClick={() => {
                       void router.push(`/diary/${currentDiary.id}`);
@@ -183,7 +183,7 @@ const Home: NextPage = () => {
                 );
               })
             ) : (
-              <div className="flex h-20 w-72 items-center justify-center rounded-xl bg-base-300 p-3 md:w-96">
+              <div className="flex h-20 w-full items-center justify-center rounded-xl bg-base-300 p-3">
                 <h1 className="flex items-center gap-2 text-error">
                   <IoMdWarning size={22} /> Oops! Diary on{" "}
                   {dayjs(selectedDay).format("D MMM YYYY")} cannot be found.
@@ -191,7 +191,7 @@ const Home: NextPage = () => {
               </div>
             )}
           </div>
-          <div className="flex gap-6">
+          <div className="flex gap-6 flex-wrap justify-center max-w-md">
             <button
               className={`btn-primary btn flex items-center gap-2 ${loading ? 'loading' : ''}`}
               onClick={() => { handleCreateDiary() }}
@@ -204,13 +204,14 @@ const Home: NextPage = () => {
             >
               View all diaries <BsEyeFill size={22} />
             </Link>
+            <Link
+              href={"/chat"}
+              className="btn-primary btn flex items-center gap-2"
+            >
+              Chat with yourself <BsChatFill size={22} />
+            </Link>
           </div>
-          <Link
-            href={"/chat"}
-            className="btn-primary btn flex items-center gap-2"
-          >
-            Chat with yourself <BsChatFill size={22} />
-          </Link>
+
         </main>
       </Container>
     </>

@@ -51,8 +51,8 @@ const Calendar = ({ onClick, moods, selecting }: {
 
 
     return (
-        <div className="flex flex-col gap-2 justify-center items-center">
-            <div className="bg-primary-content w-72 md:w-96 p-3 md:p-6 rounded-xl ">
+        <div className="flex flex-col gap-2 justify-center max-w-sm items-center w-full ">
+            <div className="bg-primary-content w-full p-3 md:p-6 rounded-xl ">
                 <div className="flex justify-between items-center">
                     <MdKeyboardArrowLeft
                         className="text-secondary hover:cursor-pointer hover:text-secondary-focus"
@@ -111,7 +111,7 @@ const Calendar = ({ onClick, moods, selecting }: {
                     ))
                 }
             </div >
-            <div className="flex gap-3 flex-wrap w-72 md:w-96">
+            <div className="flex gap-3 flex-wrap justify-between w-full px-3">
                 {allMoods.map((mood) => {
                     return <div className="flex items-center gap-2" key={mood}>
                         <div className={`w-4 h-4 rounded-md ${colors[mood]}`}></div><div className="capitalize">{mood}</div>

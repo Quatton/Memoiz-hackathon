@@ -42,7 +42,7 @@ const DiaryPage: NextPage = () => {
       <Nav
       />
       <main className="flex w-full flex-col items-center">
-        <div className="w-full max-w-4xl px-5">
+        <div className="w-full max-w-4xl px-5 overflow-x-auto">
           <table className="table-compact table w-full shadow-md ">
             <thead className="">
               <tr>
@@ -83,7 +83,7 @@ const DiaryPage: NextPage = () => {
                     {dayjs(diary.createdAt).format('D MMM YYYY')}
                   </td>
                   <td className="">{diary.title}</td>
-                  <td className=" truncate">{diary.content.length > 30 ? `${diary.content.slice(0, 30)}...` : diary.content}</td>
+                  <td className="truncate">{diary.content.length > 20 ? `${diary.content.slice(0, 20)}...` : diary.content}</td>
                 </tr>
               ))}
 
