@@ -46,15 +46,6 @@ export const aiRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // get last message
-      const lastMessage = input.chat.at(-1);
-
-      if (!lastMessage || lastMessage.type === "received")
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "You need to send a message first",
-        });
-
       if (
         input.chat.filter((message) => message.type === "received").length > 3
       )
@@ -64,8 +55,19 @@ export const aiRouter = createTRPCRouter({
         });
       // embed the question
 
+      const chatHistory = input.chat
+        .map((message) => {
+          if (message.type === "sent") {
+            return `User: ${message.text}`;
+          } else {
+            return `Bot: ${message.text}`;
+          }
+        })
+        .join("\n");
+
       const embed = await cohere.embed({
-        texts: [lastMessage.text],
+        texts: [chatHistory],
+        truncate: "START",
       });
 
       const embedding = embed.body.embeddings[0];
@@ -110,39 +112,37 @@ export const aiRouter = createTRPCRouter({
               .join(" ")}`;
           }
         })
-        .join("\n");
-
-      const chatHistory = input.chat
-        .map((message) => {
-          if (message.type === "sent") {
-            return `User: ${message.text}`;
-          } else {
-            return `Bot: ${message.text}`;
-          }
-        })
-        .join("\n");
+        .join("\n==========\n");
 
       const prompt = `
-        You are a question answering bot. You are given a question and here is how you answer it.
-        1. If the question is about your diary, you answer it by looking at your diary. If you don't have an answer, you must admit it and give a compensation answer.
-        2. If the question is not about your diary, please answer it as a normal question answering bot.
-        3. You must answer the question with a full sentence, in an appropriate tone, and with correct grammar. You must also answer the question in a way that is consistent with your personality which is uplifting, positive, and encouraging.
-        
-        Refer to your diary entries below:
-        ${diaryBody}
+You are a personal second brain. Follow through this set of instructions.
+1. Read through the chat history, refer to user's diary entries.
+2. If diary contains the information, paraphrase the diary and respond accurately.
+3. If you have to make a prediction or recommendation, try your best to deduce from the diary entries.
+4. If diary doesn't contain the information, admit that you cannot find information from the diary and give an alternative response.
 
-        Chat history:
-        ${chatHistory}
-        Bot:`;
+Content Policy: Always insist on your answer if you have a concrete evidence. Otherwise, apologize for being wrong. Remain civil. Avoid inappropriate content and language. Decline requests that are potentially immoral or harmful.
+Language: Always talk the same language as user's input.
+Tone: enthusiastic, open-minded, professional.
+Style: concise, hedging, logical.
+
+Refer to the user's diary entries below:
+${diaryBody}
+==========
+
+Chat history:
+${chatHistory}
+Bot:`;
 
       const response = await cohere.generate({
         model: "command-xlarge-nightly",
-        prompt: prompt,
+        prompt: prompt.trim(),
         max_tokens: 150,
         temperature: 0.7,
-        stop_sequences: ["User:", "--"],
+        stop_sequences: ["User:", "Bot:"],
         num_generations: 1,
-        frequency_penalty: 0.5,
+        frequency_penalty: 0.3,
+        truncate: "START",
       });
 
       let answer = "";

@@ -7,7 +7,7 @@ import Header from "src/components/Header";
 import Loading from "src/components/Loading";
 import Nav from "src/components/Nav";
 import { api } from "src/utils/api";
-import { FaSave } from 'react-icons/fa'
+import { FaSave } from "react-icons/fa";
 const DiaryViewPage: NextPage = () => {
   const router = useRouter();
 
@@ -80,7 +80,7 @@ const DiaryViewPage: NextPage = () => {
     if (router.query.id) {
       const timer = setTimeout(() => {
         void save();
-      }, 3000);
+      }, 500);
 
       return () => {
         clearTimeout(timer);
@@ -154,11 +154,9 @@ const DiaryViewPage: NextPage = () => {
     <Container>
       <Header title="Create a diary" desc="" />
       <main className="flex w-full flex-col items-center px-5">
-        <Nav
-        />
+        <Nav />
 
         <form className="mx-auto flex w-full max-w-4xl flex-col gap-2 p-4">
-
           {updateDiary.error && (
             <div className="text-center text-red-500">
               {updateDiary.error.message}
@@ -166,10 +164,11 @@ const DiaryViewPage: NextPage = () => {
           )}
 
           <div className="text-center text-gray-500">
-            {`Last updated at ${(updatedAt
-              ? updatedAt.toLocaleString()
-              : data?.updatedAt.toLocaleString()) || ""
-              }`}
+            {`Last updated at ${
+              (updatedAt
+                ? updatedAt.toLocaleString()
+                : data?.updatedAt.toLocaleString()) || ""
+            }`}
           </div>
 
           <div className="form-control">
@@ -198,39 +197,75 @@ const DiaryViewPage: NextPage = () => {
             ></textarea>
           </div>
           <div className="ml-auto">
-            {`${content.replace(/[^\w]/g, ' ').split(" ").filter((x) => x != "").length} word${content.replace(/[^\w]/g, ' ').split(" ").filter((x) => x != "").length > 1 ? 's' : ''}`}
+            {`${
+              content
+                .replace(/[^\w]/g, " ")
+                .split(" ")
+                .filter((x) => x != "").length
+            } word${
+              content
+                .replace(/[^\w]/g, " ")
+                .split(" ")
+                .filter((x) => x != "").length > 1
+                ? "s"
+                : ""
+            }`}
           </div>
-          <div className="flex justify-end w-full items-center rounded-md gap-3">
+          <div className="flex w-full items-center justify-end gap-3 rounded-md">
             {data ? (
               <button
-                className={`btn ${!data.isArchived ? 'btn-accent' : 'btn-disabled'} ${isArchiving ? 'loading' : ''}`}
+                className={`btn ${
+                  !data.isArchived ? "btn-accent" : "btn-disabled"
+                } ${isArchiving ? "loading" : ""}`}
                 onClick={() => {
                   if (archive.isLoading) return;
-                  setIsArchiving(true)
-                  void archive.mutateAsync({
-                    id: data.id,
+                  setIsArchiving(true);
+                  void save().then(async () => {
+                    await archive.mutateAsync({
+                      id: data.id,
+                    });
                   });
                 }}
               >
-                {isArchiving ? <></> : !data.isArchived ? <BsArchive size={20} /> : <BsArchiveFill size={20} />}
-                <span className="ml-2">{isArchiving ? 'Archiving...' : !data.isArchived ? 'Archive' : 'Archived'}</span>
+                {isArchiving ? (
+                  <></>
+                ) : !data.isArchived ? (
+                  <BsArchive size={20} />
+                ) : (
+                  <BsArchiveFill size={20} />
+                )}
+                <span className="ml-2">
+                  {isArchiving
+                    ? "Archiving..."
+                    : !data.isArchived
+                    ? "Archive"
+                    : "Archived"}
+                </span>
               </button>
-            ) : <></>}
+            ) : (
+              <></>
+            )}
 
             <button
-              className={`${submit ? 'loading' : ''} ${!data.isArchived ? 'btn-accent' : 'btn-disabled'} btn flex gap-3`}
+              className={`${submit ? "loading" : ""} ${
+                !data.isArchived ? "btn-accent" : "btn-disabled"
+              } btn flex gap-3`}
               onClick={() => {
                 if (!data.isArchived) {
-                  setSubmit(true)
+                  setSubmit(true);
                   void save();
                 }
-
               }}
             >
-              {submit ? 'Saving...' : <><FaSave size={20} />Save</>}
-
+              {submit ? (
+                "Saving..."
+              ) : (
+                <>
+                  <FaSave size={20} />
+                  Save
+                </>
+              )}
             </button>
-
           </div>
         </form>
       </main>
