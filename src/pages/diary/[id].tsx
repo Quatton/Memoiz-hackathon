@@ -113,7 +113,7 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
             title: data.title,
             content: data.content,
           });
-          setSubmit(false)
+          setSubmit(false);
           setUpdatedAt(data.updatedAt);
         },
       }
@@ -365,7 +365,7 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
               )}
             </button>
           </div>
-        </div>
+        </form>
       </main>
 
       <CommonModal
