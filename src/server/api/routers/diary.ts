@@ -310,7 +310,7 @@ export const diaryRouter = createTRPCRouter({
     .input(
       z.object({
         title: z.string().min(1).max(60),
-        content: z.string().min(1).max(500),
+        content: z.string().max(500),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -334,7 +334,7 @@ export const diaryRouter = createTRPCRouter({
       z.object({
         id: z.string().min(1).max(100),
         title: z.string().min(1).max(60),
-        content: z.string().min(1).max(500),
+        content: z.string().max(500),
       })
     )
     .mutation(async ({ ctx, input }) => {

@@ -8,6 +8,7 @@ import Loading from "src/components/Loading";
 import Nav from "src/components/Nav";
 import { api } from "src/utils/api";
 import { FaSave } from "react-icons/fa";
+import CommonModal from "src/components/Modal";
 const DiaryViewPage: NextPage = () => {
   const router = useRouter();
 
@@ -40,7 +41,16 @@ const DiaryViewPage: NextPage = () => {
   const [content, setContent] = useState("");
   const [submit, setSubmit] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
+
   const updateDiary = api.diary.updateDiary.useMutation({});
+
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+
+  const archive = api.diary.archiveDiary.useMutation({
+    onSuccess: () => {
+      void refetch();
+    },
+  });
 
   // auto-save
   const [payload, setPayload] = useState({
@@ -75,6 +85,15 @@ const DiaryViewPage: NextPage = () => {
       }
     );
   }, [title, content, payload, updateDiary, router.query.id]);
+
+  const saveAndArchive = useCallback(async () => {
+    if (archive.isLoading || !data) return;
+    setIsArchiving(true);
+    await save();
+    await archive.mutateAsync({
+      id: data.id,
+    });
+  }, [archive, data, save]);
 
   useEffect(() => {
     if (router.query.id) {
@@ -139,12 +158,6 @@ const DiaryViewPage: NextPage = () => {
   //     clearInterval(timer);
   //   };
   // }, [data]);
-
-  const archive = api.diary.archiveDiary.useMutation({
-    onSuccess: () => {
-      void refetch();
-    },
-  });
 
   if (isLoading || !data) {
     return <Loading />;
@@ -212,45 +225,37 @@ const DiaryViewPage: NextPage = () => {
             }`}
           </div>
           <div className="flex w-full items-center justify-end gap-3 rounded-md">
-            {data ? (
-              <button
-                className={`btn ${
-                  !data.isArchived ? "btn-accent" : "btn-disabled"
-                } ${isArchiving ? "loading" : ""}`}
-                onClick={() => {
-                  if (archive.isLoading) return;
-                  setIsArchiving(true);
-                  void save().then(async () => {
-                    await archive.mutateAsync({
-                      id: data.id,
-                    });
-                  });
-                }}
-              >
-                {isArchiving ? (
-                  <></>
-                ) : !data.isArchived ? (
-                  <BsArchive size={20} />
-                ) : (
-                  <BsArchiveFill size={20} />
-                )}
-                <span className="ml-2">
-                  {isArchiving
-                    ? "Archiving..."
-                    : !data.isArchived
-                    ? "Archive"
-                    : "Archived"}
-                </span>
-              </button>
-            ) : (
-              <></>
-            )}
-
+            <button
+              className={`btn ${
+                !data.isArchived ? "btn-accent" : "btn-disabled"
+              } ${archive.isLoading ? "loading" : ""}`}
+              onClick={(e) => {
+                e.preventDefault();
+                setIsArchiveModalOpen(true);
+                // void saveAndArchive();
+              }}
+            >
+              {archive.isLoading ? (
+                <></>
+              ) : !data.isArchived ? (
+                <BsArchive size={20} />
+              ) : (
+                <BsArchiveFill size={20} />
+              )}
+              <span className="ml-2">
+                {archive.isLoading
+                  ? "Archiving..."
+                  : !data.isArchived
+                  ? "Archive"
+                  : "Archived"}
+              </span>
+            </button>
             <button
               className={`${submit ? "loading" : ""} ${
                 !data.isArchived ? "btn-accent" : "btn-disabled"
               } btn flex gap-3`}
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
                 if (!data.isArchived) {
                   setSubmit(true);
                   void save();
@@ -269,6 +274,18 @@ const DiaryViewPage: NextPage = () => {
           </div>
         </form>
       </main>
+
+      <CommonModal
+        isOpen={isArchiveModalOpen}
+        cancel={() => setIsArchiveModalOpen(false)}
+        confirm={() => {
+          setIsArchiveModalOpen(false);
+          void saveAndArchive();
+        }}
+        title="Confirm Archiving"
+        description="This document will be archived in Memoiz's long-term memory. You will not be able to edit this document. Are you sure?"
+        confirmLabel="Archive"
+      />
     </Container>
   );
 };
