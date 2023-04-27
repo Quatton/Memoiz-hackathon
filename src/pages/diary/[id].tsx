@@ -380,6 +380,7 @@ const DiaryViewPage: NextPage<{ id: string }> = ({ id }) => {
         title="Confirm Unarchive"
         description="This document will be unarchived. You will be able to edit this document again, but Memoiz will forget this piece of information. Are you sure?"
         confirmLabel="Unarchive"
+        cancelLabel=""
       />
 
       <CommonModal

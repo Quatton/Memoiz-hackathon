@@ -26,6 +26,7 @@ const server = z.object({
   DISCORD_CLIENT_ID: z.string().min(1),
   DISCORD_CLIENT_SECRET: z.string().min(1),
   COHERE_API_KEY: z.string().min(1),
+  NOTION_API_KEY: z.string().min(1),
 });
 
 /**
@@ -54,6 +55,7 @@ const processEnv = {
   UPSTASH_REDIS_TOKEN: process.env.UPSTASH_REDIS_TOKEN,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  NOTION_API_KEY: process.env.NOTION_API_KEY,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 
