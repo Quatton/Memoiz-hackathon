@@ -10,7 +10,8 @@ import { MdDeleteSweep, MdRefresh, MdWarning } from "react-icons/md";
 const Home: NextPage = () => {
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const mutation = api.ai.askQuestion.useMutation({
+  
+  const mutation = api.ai.askQuesrion.useMutation({
     onSuccess: (e) => {
       setChat((x) => {
         const newChat = [

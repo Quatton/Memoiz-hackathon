@@ -12,6 +12,7 @@ const ChatNotionPage: NextPage = () => {
   const [query, setQuery] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const mutation = api.ai.askNotion.useMutation({
+	 
     onSuccess: (e) => {
       setChat((x) => {
         const newChat = [

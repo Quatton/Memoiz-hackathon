@@ -1,5 +1,7 @@
 # Memoiz - Mood Tracker Demo
 
+> This documentation version is for branch `next-patch` only. As you can see, we have another two routes which are `/notion` and `/chat-notion`. These two routes are for the Notion integration. We are still working on it and it is not ready for production yet. Here we use `NOTION-API-KEY`, which you can get it from [internal integration page](https://www.notion.so/my-integrations). Since you have to put your own `API-KEY` in `.env`, this is not yet ready for production. We will update the documentation once we are ready.
+
 31 March - 7 April 2023 \
 Lablab.ai: Build your AI Startup Hackathon. Episode 2
 
