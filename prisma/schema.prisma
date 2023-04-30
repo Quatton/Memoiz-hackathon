@@ -10,13 +10,14 @@ datasource db {
 
 model NotionDatabase {
   id        String   @id @default(cuid())
-  databaseId String  @unique
+  databaseId String  
   title     String
   addedAt   DateTime @default(now())
   lastSync  DateTime @default(now())
   authorId  String
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
+  @@unique([databaseId, authorId])
   @@index([authorId])
 }
 

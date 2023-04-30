@@ -11,7 +11,8 @@ import { isFullDatabase, isFullPage } from "@notionhq/client";
 import { NotionDatabase } from "@prisma/client";
 
 const NotionPage: NextPage = () => {
-  const { data: syncedDatabases } = api.notion.getSyncedDatabases.useQuery();
+  const { data: syncedDatabases, refetch } =
+    api.notion.getSyncedDatabases.useQuery();
   const { isOpen, setIsOpen, shownDatabaseId, setShownDatabaseId } =
     useNotionDatabaseStore();
 
@@ -32,8 +33,10 @@ const NotionPage: NextPage = () => {
   // here we are going to check if shownDatabase is in syncedDatabases
   // if so then we should set the current database metadata to that
   const currentDatabaseMetadata = syncedDatabases?.find((database) => {
-    return database.id === shownDatabaseId;
+    return database.databaseId === shownDatabaseId;
   });
+
+  const syncDBMutation = api.notion.syncDatabase.useMutation();
 
   return (
     <Container>
@@ -109,7 +112,16 @@ const NotionPage: NextPage = () => {
                 ) : (
                   <span className="ml-1 font-semibold">Not yet</span>
                 )}
-                <button className="btn-success btn-xs btn ml-1">Sync</button>
+                <button
+                  className="btn-success btn-xs btn ml-1"
+                  onClick={() => {
+                    syncDBMutation.mutate({
+                      databaseId: shownDatabaseId,
+                    });
+                  }}
+                >
+                  Sync
+                </button>
               </div>
             </div>
           </div>
